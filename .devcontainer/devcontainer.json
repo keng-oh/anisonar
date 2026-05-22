@@ -1,0 +1,30 @@
+{
+  "name": "アニソンDB",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspaces/anisonar",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Anthropic.claude-code",
+        "Shopify.ruby-lsp",
+        "rubocop.vscode-rubocop",
+        "GitHub.copilot",
+        "GitHub.copilot-chat",
+        "eamodio.gitlens",
+        "bradlc.vscode-tailwindcss"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "Shopify.ruby-lsp",
+        "[ruby]": {
+          "editor.defaultFormatter": "Shopify.ruby-lsp"
+        },
+        "[javascript]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        }
+      }
+    }
+  },
+  "postCreateCommand": "doppler login && doppler setup"
+}
