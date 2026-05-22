@@ -55,17 +55,32 @@ Spotify等のストリーミングサービスとのプレイリスト連携も�
 - Sidekiqジョブは `app/jobs/` に配置
 - ViewComponentは `app/components/` に配置
 - N+1クエリは `bullet` gem で検出・即修正
+- ファットモデルを避け、ビジネスロジックはサービスオブジェクトに切り出す
+- コントローラーは薄く保つ（7アクション原則）
 
 ### 命名規則
 - モデル: 単数形・英語（`Anime`, `Song`, `Artist`）
 - テーブル: 複数形・スネークケース（`animes`, `songs`, `artists`）
 - ルーティング: RESTful原則に従う
+- サービスオブジェクト: `動詞 + Service` （例: `SyncAnimeService`）
+- Sidekiqジョブ: `XxxJob`
+
+### enum の衝突回避
+`insert` / `reject` は ActiveRecord のメソッドと衝突するため prefix が必要:
+```ruby
+enum :song_type, { op: 0, ed: 1, insert: 2, image: 3 }, prefix: :song
+enum :action,    { approve: 0, reject: 1, flag: 2 },     prefix: :review
+```
 
 ### テスト
 - RSpec使用
 - FactoryBot でテストデータ生成
 - モデルのバリデーション・スコープは必ずテスト
 - 外部API（Annict, Spotify）はVCRカセットでモック
+
+### コメント
+- WHYが非自明な場合のみ書く
+- 外部APIの制約・仕様変更の注意点は必ずコメントに残す
 
 ## DBスキーマ（概要）
 
@@ -114,6 +129,14 @@ bundle exec sidekiq
 # Annictデータ同期（実装後）
 bin/rails annict:sync
 ```
+
+## 進捗管理ルール
+
+**作業終了時に必ず `docs/progress.md` を更新すること。**
+
+- 完了した作業を「完了済み」セクションに日付付きで追記する
+- 「次にやること」セクションを現状に合わせて更新する
+- ファイルは `docs/progress.md` に一元管理する
 
 ## ディレクトリ構成（予定）
 
