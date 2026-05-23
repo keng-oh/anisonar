@@ -38,22 +38,37 @@
     - `spec/factories/users.rb` — general / reviewer / admin / trusted トレイト付き
     - `spec/models/user_spec.rb` — 7 examples、全パス
 
+- 2026-05-23 — ユーザーフロント・管理画面フロント
+  - daisyUI v5 インストール・Tailwind v4 と連携設定
+  - ルーティング設定（root, animes, songs, admin namespace）
+  - Pagy を ApplicationController / ApplicationHelper に組み込み
+  - `Song#approve!` / `Song#reject!` メソッド追加
+  - `Anime.search` スコープ追加（ILIKE 全文検索）
+  - ユーザー向けコントローラー
+    - `AnimesController` — index（タイトル/シーズン検索・Pagy ページネーション）・show
+    - `SongsController` — show
+  - 管理コントローラー
+    - `Admin::BaseController` — admin ロールチェック・admin レイアウト適用
+    - `Admin::AnimesController` — index（検索）・edit・update
+    - `Admin::SongsController` — index（pending_review 一覧）・approve・reject
+  - レイアウト
+    - `application.html.erb` — ナビバー（管理画面リンク・ログイン/ログアウト）・flash メッセージ
+    - `admin.html.erb` — 管理専用レイアウト（night テーマ・管理ナビ）
+  - ユーザー向けビュー
+    - `animes/index` — グリッドカード表示・タイトル/シーズン検索フォーム
+    - `animes/show` — カバー画像・楽曲一覧・Spotify リンクボタン
+    - `songs/show` — 楽曲詳細・使用アニメ一覧・Spotify リンク
+  - 管理者向けビュー
+    - `admin/animes/index` — テーブル一覧・検索
+    - `admin/animes/edit` — タイトル・メディア種別・シーズン・ステータス編集フォーム
+    - `admin/songs/index` — レビューキュー（承認/否認ボタン付き）
+
 ## 次にやること
 
 - 優先度：高（1ヶ月目スコープ）
-  - Annict API 同期サービス
-    - `app/services/annict/client.rb` — GraphQL クライアント（Faraday）
-    - `app/services/annict/sync_animes_service.rb` — アニメ・シリーズ情報の upsert
-    - `app/jobs/annict_sync_job.rb` — Sidekiq ジョブ化
-    - VCR カセットでテスト
-  - 管理者向けレビューキュー（MVP コア機能）
-    - `app/controllers/admin/` — 管理ネームスペース
-    - `app/views/admin/reviews/` — pending / reviewing 楽曲の一覧・承認 / 否認アクション
-    - `Song` の status 更新ロジック
-  - アニメ検索・詳細画面（ユーザー向け）
-    - `AnimesController#index` — 検索（title / season で絞り込み）
-    - `AnimesController#show` — 関連楽曲一覧
-    - `SongsController#show` — Spotify リンク表示
+  - Annict データ同期（コンソール or Rake タスクで手動実行）
+    - `app/jobs/annict_sync_job.rb` — Sidekiq ジョブ化（任意）
+    - `lib/tasks/annict.rake` — `bin/rails annict:sync` コマンド
   - Spotify API 連携
     - `app/services/spotify/client.rb` — Client Credentials フロー
     - `app/services/spotify/search_track_service.rb` — 曲名＋アーティスト名で検索

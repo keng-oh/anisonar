@@ -5,8 +5,6 @@
 # docker build -t anisonar .
 # docker run -d -p 80:80 -e RAILS_MASTER_KEY=<value from config/master.key> --name anisonar anisonar
 
-# For a containerized dev environment, see Dev Containers: https://guides.rubyonrails.org/getting_started_with_devcontainer.html
-
 # Make sure RUBY_VERSION matches the Ruby version in .ruby-version
 ARG RUBY_VERSION=3.4.9
 FROM docker.io/library/ruby:$RUBY_VERSION-slim AS base

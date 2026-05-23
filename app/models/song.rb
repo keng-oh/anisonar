@@ -17,4 +17,12 @@ class Song < ApplicationRecord
   def spotify_link
     platform_links.find_by(platform: :spotify)
   end
+
+  def approve!
+    update!(status: :approved)
+  end
+
+  def reject!
+    update!(status: :rejected)
+  end
 end

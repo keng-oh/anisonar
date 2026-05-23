@@ -1,0 +1,55 @@
+<% content_for :title, "アニメ管理 | 管理画面" %>
+
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-bold">アニメ一覧</h1>
+  <span class="badge badge-outline"><%= @animes.count %> 件</span>
+</div>
+
+<%= form_with url: admin_animes_path, method: :get, class: "mb-4 flex gap-2" do |f| %>
+  <label class="input input-bordered flex items-center gap-2 flex-1">
+    <%= f.text_field :q, value: params[:q], placeholder: "タイトルで検索", class: "grow" %>
+  </label>
+  <%= f.submit "検索", class: "btn btn-primary" %>
+  <%= link_to "クリア", admin_animes_path, class: "btn btn-ghost" %>
+<% end %>
+
+<div class="overflow-x-auto">
+  <table class="table table-zebra">
+    <thead>
+      <tr>
+        <th>タイトル</th>
+        <th>シリーズ</th>
+        <th>メディア</th>
+        <th>シーズン</th>
+        <th>ステータス</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @animes.each do |anime| %>
+        <tr>
+          <td>
+            <div>
+              <p class="font-semibold"><%= anime.title %></p>
+              <% if anime.title_en.present? %>
+                <p class="text-xs text-base-content/60"><%= anime.title_en %></p>
+              <% end %>
+            </div>
+          </td>
+          <td class="text-sm"><%= anime.anime_series&.name %></td>
+          <td><span class="badge badge-ghost badge-sm"><%= anime.media_type.upcase %></span></td>
+          <td class="text-sm"><%= anime.season %></td>
+          <td>
+            <span class="badge <%= anime.airing? ? 'badge-success' : 'badge-ghost' %> badge-sm">
+              <%= anime.airing? ? "放送中" : "終了" %>
+            </span>
+          </td>
+          <td>
+            <%= link_to "編集", edit_admin_anime_path(anime), class: "btn btn-ghost btn-xs" %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+

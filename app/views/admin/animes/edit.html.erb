@@ -1,0 +1,50 @@
+<% content_for :title, "#{@anime.title} 編集 | 管理画面" %>
+
+<div class="mb-4">
+  <%= link_to "← 一覧に戻る", admin_animes_path, class: "btn btn-ghost btn-sm" %>
+</div>
+
+<div class="card bg-base-100 shadow max-w-xl">
+  <div class="card-body">
+    <h1 class="card-title text-xl mb-4">アニメ編集</h1>
+
+    <%= form_with model: [:admin, @anime], class: "flex flex-col gap-4" do |f| %>
+      <div class="form-control">
+        <%= f.label :title, "タイトル", class: "label" %>
+        <%= f.text_field :title, class: "input input-bordered" %>
+        <% @anime.errors[:title].each do |msg| %>
+          <span class="text-error text-sm"><%= msg %></span>
+        <% end %>
+      </div>
+
+      <div class="form-control">
+        <%= f.label :title_en, "タイトル（英語）", class: "label" %>
+        <%= f.text_field :title_en, class: "input input-bordered" %>
+      </div>
+
+      <div class="form-control">
+        <%= f.label :media_type, "メディア種別", class: "label" %>
+        <%= f.select :media_type,
+          Anime.media_types.keys.map { |k| [k.upcase, k] },
+          {}, class: "select select-bordered" %>
+      </div>
+
+      <div class="form-control">
+        <%= f.label :season, "シーズン", class: "label" %>
+        <%= f.text_field :season, placeholder: "例: 2024-spring", class: "input input-bordered" %>
+      </div>
+
+      <div class="form-control">
+        <%= f.label :status, "ステータス", class: "label" %>
+        <%= f.select :status,
+          [["放送中", "airing"], ["放送終了", "finished"]],
+          {}, class: "select select-bordered" %>
+      </div>
+
+      <div class="card-actions justify-end mt-2">
+        <%= link_to "キャンセル", admin_animes_path, class: "btn btn-ghost" %>
+        <%= f.submit "保存", class: "btn btn-primary" %>
+      </div>
+    <% end %>
+  </div>
+</div>

@@ -20,7 +20,6 @@ gem "solid_cable"
 
 # Components & UI
 gem "view_component"
-gem "pagy"
 
 # HTTP client (Annict GraphQL, Spotify API)
 gem "faraday"

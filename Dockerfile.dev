@@ -1,0 +1,26 @@
+# syntax=docker/dockerfile:1
+FROM ruby:3.4.9-slim-bookworm
+
+ARG NODE_VERSION=22
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    gnupg \
+    build-essential \
+    libpq-dev \
+    libyaml-dev \
+    postgresql-client \
+    git \
+    && curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - \
+    && apt-get install -y --no-install-recommends nodejs \
+    && npm install -g yarn \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV BUNDLE_PATH=/usr/local/bundle
+
+WORKDIR /app
+
+COPY Gemfile Gemfile.lock ./
+RUN bundle install
+
+ENTRYPOINT ["/app/bin/docker-entrypoint"]

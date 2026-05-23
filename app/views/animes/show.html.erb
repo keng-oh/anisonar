@@ -1,0 +1,68 @@
+<% content_for :title, "#{@anime.title} | Anisonar" %>
+
+<div class="mb-4">
+  <%= link_to "← 一覧に戻る", animes_path, class: "btn btn-ghost btn-sm" %>
+</div>
+
+<div class="flex flex-col md:flex-row gap-6 mb-8">
+  <div class="w-full md:w-48 shrink-0">
+    <% if @anime.cover_image_url.present? %>
+      <img src="<%= @anime.cover_image_url %>" alt="<%= @anime.title %>" class="w-full rounded-xl shadow">
+    <% else %>
+      <div class="w-full aspect-[3/4] bg-base-300 rounded-xl flex items-center justify-center text-6xl">🎌</div>
+    <% end %>
+  </div>
+
+  <div class="flex-1">
+    <% if @anime.anime_series.present? %>
+      <p class="text-sm text-base-content/60 mb-1"><%= @anime.anime_series.name %></p>
+    <% end %>
+    <h1 class="text-3xl font-bold mb-1"><%= @anime.title %></h1>
+    <% if @anime.title_en.present? %>
+      <p class="text-base-content/60 mb-3"><%= @anime.title_en %></p>
+    <% end %>
+    <div class="flex flex-wrap gap-2">
+      <span class="badge badge-outline"><%= @anime.media_type.upcase %></span>
+      <% if @anime.season.present? %>
+        <span class="badge badge-outline"><%= @anime.season %></span>
+      <% end %>
+      <span class="badge <%= @anime.airing? ? 'badge-success' : 'badge-ghost' %>">
+        <%= @anime.airing? ? "放送中" : "放送終了" %>
+      </span>
+    </div>
+  </div>
+</div>
+
+<h2 class="text-xl font-bold mb-4">楽曲一覧</h2>
+
+<% if @songs.any? %>
+  <div class="flex flex-col gap-3">
+    <% @songs.each do |song| %>
+      <div class="card bg-base-100 shadow-sm">
+        <div class="card-body p-4 flex-row items-center gap-4">
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="badge badge-primary badge-sm"><%= song.song_type.upcase %></span>
+              <%= link_to song.title, song_path(song), class: "font-semibold hover:underline truncate" %>
+            </div>
+            <p class="text-sm text-base-content/60"><%= song.artist.name %></p>
+          </div>
+          <% if (link = song.spotify_link) %>
+            <a href="https://open.spotify.com/track/<%= link.platform_track_id %>" target="_blank" rel="noopener" class="btn btn-sm btn-success gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+              </svg>
+              Spotify
+            </a>
+          <% end %>
+          <%= link_to "詳細", song_path(song), class: "btn btn-ghost btn-sm" %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <div class="text-center py-12 text-base-content/60">
+    <p class="text-4xl mb-3">🎵</p>
+    <p>楽曲情報はまだ登録されていません</p>
+  </div>
+<% end %>

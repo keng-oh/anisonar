@@ -1,0 +1,62 @@
+x-app: &app
+  build:
+    context: .
+    dockerfile: Dockerfile.dev
+  volumes:
+    - .:/app
+    - bundle_cache:/usr/local/bundle
+    - node_modules:/app/node_modules
+  env_file: .env
+
+services:
+  web:
+    <<: *app
+    command: ./bin/rails server
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  js:
+    <<: *app
+    command: bash -c "yarn install && exec yarn build:watch"
+
+  css:
+    <<: *app
+    command: bash -c "yarn install && exec yarn build:css:watch"
+
+  worker:
+    <<: *app
+    command: bundle exec sidekiq -C config/sidekiq.yml
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+volumes:
+  postgres_data:
+  bundle_cache:
+  node_modules:
