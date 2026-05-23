@@ -11,7 +11,7 @@ x-app: &app
 services:
   web:
     <<: *app
-    command: ./bin/rails server
+    command: bash -c "rm -f /app/tmp/pids/server.pid && ./bin/rails server -b 0.0.0.0"
     ports:
       - "3000:3000"
     depends_on:
@@ -55,6 +55,11 @@ services:
     image: redis:7-alpine
     ports:
       - "6379:6379"
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "8025:8025"
 
 volumes:
   postgres_data:

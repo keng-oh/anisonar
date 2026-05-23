@@ -1,0 +1,34 @@
+<% content_for :title, "Annict同期 | 管理画面" %>
+
+<div class="max-w-xl">
+  <h1 class="text-2xl font-bold mb-6">Annict データ同期</h1>
+
+  <%= form_with url: admin_annict_sync_path, method: :post do |f| %>
+    <div class="card bg-base-100 shadow-sm">
+      <div class="card-body gap-4">
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">シーズン指定（任意）</span>
+            <span class="label-text-alt text-base-content/50">例: 2025-spring, 2025-summer</span>
+          </label>
+          <%= f.text_field :seasons,
+            placeholder: "空白の場合は全シーズンを取得",
+            class: "input input-bordered w-full" %>
+          <p class="text-xs text-base-content/50 mt-1">複数指定はカンマ区切り。空白なら全件取得（時間がかかります）。</p>
+        </div>
+
+        <div class="card-actions justify-end mt-2">
+          <%= f.submit "同期ジョブを実行", class: "btn btn-primary" %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="mt-6">
+    <p class="text-sm text-base-content/60">
+      ジョブは Sidekiq で非同期実行されます。進捗は
+      <%= link_to "Sidekiq Web UI", "/sidekiq", target: "_blank", class: "link link-primary" %>
+      で確認できます。
+    </p>
+  </div>
+</div>

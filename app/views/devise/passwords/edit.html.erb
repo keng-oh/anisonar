@@ -1,0 +1,38 @@
+<% content_for :title, "パスワード変更 | Anisonar" %>
+
+<div class="flex justify-center py-12">
+  <div class="card bg-base-100 shadow-sm w-full max-w-sm">
+    <div class="card-body gap-4">
+      <h1 class="card-title text-2xl justify-center">パスワード変更</h1>
+
+      <%= form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :put, class: "flex flex-col gap-4" }) do |f| %>
+        <%= render "devise/shared/error_messages", resource: resource %>
+        <%= f.hidden_field :reset_password_token %>
+
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">新しいパスワード</span>
+            <% if @minimum_password_length %>
+              <span class="label-text-alt text-base-content/50"><%= @minimum_password_length %>文字以上</span>
+            <% end %>
+          </label>
+          <%= f.password_field :password, autofocus: true, autocomplete: "new-password",
+            class: "input input-bordered w-full" %>
+        </div>
+
+        <div class="form-control">
+          <label class="label"><span class="label-text">新しいパスワード（確認）</span></label>
+          <%= f.password_field :password_confirmation, autocomplete: "new-password",
+            class: "input input-bordered w-full" %>
+        </div>
+
+        <%= f.submit "パスワードを変更する", class: "btn btn-primary w-full mt-2" %>
+      <% end %>
+
+      <div class="divider text-xs text-base-content/40">リンク</div>
+      <div class="flex flex-col gap-1 text-sm text-center">
+        <%= render "devise/shared/links" %>
+      </div>
+    </div>
+  </div>
+</div>

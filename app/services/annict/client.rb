@@ -19,8 +19,11 @@ module Annict
         req.body = { query: gql, variables: }
       end
 
+      raise Error, "HTTP #{res.status}" unless res.success?
+
       body = res.body
       raise Error, body["errors"].map { |e| e["message"] }.join(", ") if body["errors"].present?
+      raise Error, "GraphQL response missing 'data' field" if body["data"].nil?
 
       body["data"]
     end

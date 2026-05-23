@@ -2,7 +2,10 @@
 
 <div class="flex items-center justify-between mb-6">
   <h1 class="text-2xl font-bold">楽曲レビューキュー</h1>
-  <span class="badge badge-warning badge-outline"><%= @songs.count %> 件 pending</span>
+  <div class="flex items-center gap-2">
+    <span class="badge badge-warning badge-outline"><%= @songs.count %> 件 pending</span>
+    <%= link_to "楽曲を追加", new_admin_song_path, class: "btn btn-primary btn-sm" %>
+  </div>
 </div>
 
 <% if @songs.any? %>
@@ -33,6 +36,7 @@
             </div>
 
             <div class="flex gap-2 shrink-0">
+              <%= link_to "編集", edit_admin_song_path(song), class: "btn btn-ghost btn-sm" %>
               <%= button_to "承認", approve_admin_song_path(song), method: :patch,
                 class: "btn btn-success btn-sm",
                 data: { turbo_confirm: "「#{song.title}」を承認しますか？" } %>

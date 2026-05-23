@@ -1,0 +1,6 @@
+<% content_for :title, "楽曲編集 | 管理画面" %>
+
+<div class="max-w-2xl">
+  <h1 class="text-2xl font-bold mb-6">楽曲編集: <%= @song.title %></h1>
+  <%= render "form", song: @song %>
+</div>

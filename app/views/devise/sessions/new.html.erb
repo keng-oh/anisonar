@@ -1,0 +1,37 @@
+<% content_for :title, "ログイン | Anisonar" %>
+
+<div class="flex justify-center py-12">
+  <div class="card bg-base-100 shadow-sm w-full max-w-sm">
+    <div class="card-body gap-4">
+      <h1 class="card-title text-2xl justify-center">ログイン</h1>
+
+      <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: "flex flex-col gap-4" }) do |f| %>
+        <div class="form-control">
+          <label class="label"><span class="label-text">メールアドレス</span></label>
+          <%= f.email_field :email, autofocus: true, autocomplete: "email",
+            class: "input input-bordered w-full" %>
+        </div>
+
+        <div class="form-control">
+          <label class="label"><span class="label-text">パスワード</span></label>
+          <%= f.password_field :password, autocomplete: "current-password",
+            class: "input input-bordered w-full" %>
+        </div>
+
+        <% if devise_mapping.rememberable? %>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <%= f.check_box :remember_me, class: "checkbox checkbox-sm" %>
+            <span class="label-text">ログイン状態を保持する</span>
+          </label>
+        <% end %>
+
+        <%= f.submit "ログイン", class: "btn btn-primary w-full mt-2" %>
+      <% end %>
+
+      <div class="divider text-xs text-base-content/40">リンク</div>
+      <div class="flex flex-col gap-1 text-sm text-center">
+        <%= render "devise/shared/links" %>
+      </div>
+    </div>
+  </div>
+</div>

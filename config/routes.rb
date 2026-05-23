@@ -11,12 +11,13 @@ Rails.application.routes.draw do
   namespace :admin do
     root to: "animes#index"
     resources :animes, only: [ :index, :edit, :update ]
-    resources :songs, only: [ :index ] do
+    resources :songs, only: [ :index, :new, :create, :edit, :update ] do
       member do
         patch :approve
         patch :reject
       end
     end
+    resource :annict_sync, only: [ :new, :create ]
   end
 
   get "up" => "rails/health#show", as: :rails_health_check
