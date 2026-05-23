@@ -10,3 +10,4 @@
 | [.github/instructions/rails.instructions.md](.github/instructions/rails.instructions.md)     | Rails規約・命名規則・enum衝突回避               |
 | [.github/instructions/testing.instructions.md](.github/instructions/testing.instructions.md) | テスト規約（RSpec・FactoryBot・VCR）            |
 | [.github/instructions/api.instructions.md](.github/instructions/api.instructions.md)         | 外部API仕様（Annict・Spotify）                  |
+| [.github/instructions/stack.instructions.md](.github/instructions/stack.instructions.md)     | 技術スタック・使用ライブラリ一覧                |

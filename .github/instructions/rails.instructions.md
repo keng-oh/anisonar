@@ -1,5 +1,5 @@
 ---
-applyTo: "**/*.rb"
+applyTo: '**/*.rb'
 ---
 
 # Rails コーディング規約
@@ -16,13 +16,13 @@ applyTo: "**/*.rb"
 
 ## 命名規則
 
-| 種別 | 規則 | 例 |
-|------|------|----|
-| モデル | 単数形・英語 | `Anime`, `Song`, `Artist` |
-| テーブル | 複数形・スネークケース | `animes`, `songs`, `artists` |
-| サービスオブジェクト | 動詞 + Service | `SyncAnimeService` |
-| Sidekiq ジョブ | XxxJob | `SyncAnimeJob` |
-| ルーティング | RESTful 原則 | |
+| 種別                 | 規則                   | 例                           |
+| -------------------- | ---------------------- | ---------------------------- |
+| モデル               | 単数形・英語           | `Anime`, `Song`, `Artist`    |
+| テーブル             | 複数形・スネークケース | `animes`, `songs`, `artists` |
+| サービスオブジェクト | 動詞 + Service         | `SyncAnimeService`           |
+| Sidekiq ジョブ       | XxxJob                 | `SyncAnimeJob`               |
+| ルーティング         | RESTful 原則           |                              |
 
 ## enum の衝突回避（必須）
 

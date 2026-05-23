@@ -1,5 +1,5 @@
 ---
-applyTo: "app/services/{annict,spotify,ai}/**/*.rb"
+applyTo: 'app/services/{annict,spotify,ai}/**/*.rb'
 ---
 
 # 外部 API 規約

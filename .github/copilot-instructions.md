@@ -15,17 +15,9 @@ Spotify等のストリーミングサービスとのプレイリスト連携も�
 | Database       | PostgreSQL                         |
 | 非同期ジョブ   | Sidekiq                            |
 | Frontend       | Hotwire（Turbo + Stimulus）        |
-| JS             | Alpine.js                          |
-| CSS            | Tailwind CSS + daisyUI             |
+| CSS            | Tailwind CSS v4 + daisyUI v5       |
 | コンポーネント | ViewComponent                      |
 | 外部API        | Annict API（GraphQL）、Spotify API |
-
-## 開発方針
-
-- 仕事と並行（週10〜15時間）のため、**完成より早期リリースを優先**
-- 3ヶ月以内の一般公開を目標
-- MVPスコープを厳守し、後回しにできるものは後回しにする
-- 受託なし、プロダクト単体での収益化を目指す
 
 ## MVPスコープ（現フェーズ）
 
@@ -49,34 +41,6 @@ Spotify等のストリーミングサービスとのプレイリスト連携も�
 - アーティスト詳細ページ
 - API公開
 
-## DBスキーマ（概要）
-
-```
-anime_series → animes → anime_songs → songs
-                                         ↓
-                                   platform_links (Spotify等)
-
-artists (person/unit/character)
-  └ artist_relations (voice_of / member_of)
-
-songs → reviews → (自動承認ロジック)
-```
-
-### モデルのアソシエーション
-
-```ruby
-Anime belongs_to :anime_series, optional: true
-Anime has_many :songs, through: :anime_songs
-
-Song belongs_to :artist
-Song has_many :animes, through: :anime_songs
-Song has_many :platform_links
-Song has_many :reviews
-
-Artist has_many :songs
-# artist_type: person / unit / character
-```
-
 詳細は [docs/concept.md](../docs/concept.md) のセクション4参照。
 
 ## ディレクトリ構成
@@ -99,6 +63,9 @@ docs/
 ## よく使うコマンド
 
 ```bash
+# .env 生成（初回・Doppler 側で値を変更したとき）
+doppler secrets download --no-file --format env > .env
+
 # サーバー起動
 docker compose up
 
