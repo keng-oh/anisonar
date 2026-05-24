@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_22_080644) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_24_022159) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -28,7 +28,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_22_080644) do
     t.datetime "created_at", null: false
     t.string "episode_range"
     t.bigint "song_id", null: false
-    t.string "song_type", null: false
+    t.integer "song_type", default: 0, null: false
     t.datetime "updated_at", null: false
     t.index ["anime_id", "song_id"], name: "index_anime_songs_on_anime_id_and_song_id", unique: true
     t.index ["anime_id"], name: "index_anime_songs_on_anime_id"
@@ -64,20 +64,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_22_080644) do
 
   create_table "artists", force: :cascade do |t|
     t.bigint "anime_id"
+    t.integer "approve_count", default: 0, null: false
     t.integer "artist_type", default: 0, null: false
     t.datetime "created_at", null: false
+    t.bigint "created_by_user_id"
     t.string "image_url"
+    t.datetime "last_reviewed_at"
     t.string "name", null: false
     t.string "name_kana"
+    t.integer "reject_count", default: 0, null: false
+    t.integer "status", default: 0, null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by_user_id"
     t.index ["anime_id"], name: "index_artists_on_anime_id"
-  end
-
-  create_table "auto_approval_settings", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.integer "min_approve_count", default: 3, null: false
-    t.decimal "min_approve_rate", precision: 4, scale: 3, default: "0.7", null: false
-    t.datetime "updated_at", null: false
+    t.index ["created_by_user_id"], name: "index_artists_on_created_by_user_id"
+    t.index ["updated_by_user_id"], name: "index_artists_on_updated_by_user_id"
   end
 
   create_table "platform_links", force: :cascade do |t|
@@ -94,28 +95,42 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_22_080644) do
     t.integer "action", null: false
     t.text "comment"
     t.datetime "created_at", null: false
-    t.bigint "song_id", null: false
+    t.bigint "reviewable_id", null: false
+    t.string "reviewable_type", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.integer "weight", default: 1, null: false
-    t.index ["song_id", "user_id"], name: "index_reviews_on_song_id_and_user_id", unique: true
-    t.index ["song_id"], name: "index_reviews_on_song_id"
+    t.index ["reviewable_type", "reviewable_id", "user_id"], name: "index_reviews_on_reviewable_and_user", unique: true
+    t.index ["reviewable_type", "reviewable_id"], name: "index_reviews_on_reviewable"
     t.index ["user_id"], name: "index_reviews_on_user_id"
+  end
+
+  create_table "series_songs", force: :cascade do |t|
+    t.bigint "anime_series_id", null: false
+    t.datetime "created_at", null: false
+    t.bigint "song_id", null: false
+    t.integer "song_type", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["anime_series_id", "song_id"], name: "index_series_songs_on_anime_series_id_and_song_id", unique: true
+    t.index ["anime_series_id"], name: "index_series_songs_on_anime_series_id"
+    t.index ["song_id"], name: "index_series_songs_on_song_id"
   end
 
   create_table "songs", force: :cascade do |t|
     t.integer "approve_count", default: 0, null: false
     t.bigint "artist_id", null: false
     t.datetime "created_at", null: false
+    t.bigint "created_by_user_id"
     t.datetime "last_reviewed_at"
     t.text "notes"
-    t.string "registered_by", default: "ai", null: false
     t.integer "reject_count", default: 0, null: false
-    t.integer "song_type", default: 0, null: false
     t.integer "status", default: 0, null: false
     t.string "title", null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by_user_id"
     t.index ["artist_id"], name: "index_songs_on_artist_id"
+    t.index ["created_by_user_id"], name: "index_songs_on_created_by_user_id"
+    t.index ["updated_by_user_id"], name: "index_songs_on_updated_by_user_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -138,8 +153,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_22_080644) do
   add_foreign_key "artist_relations", "artists", column: "from_artist_id"
   add_foreign_key "artist_relations", "artists", column: "to_artist_id"
   add_foreign_key "artists", "animes"
+  add_foreign_key "artists", "users", column: "created_by_user_id"
+  add_foreign_key "artists", "users", column: "updated_by_user_id"
   add_foreign_key "platform_links", "songs"
-  add_foreign_key "reviews", "songs"
   add_foreign_key "reviews", "users"
+  add_foreign_key "series_songs", "anime_series"
+  add_foreign_key "series_songs", "songs"
   add_foreign_key "songs", "artists"
+  add_foreign_key "songs", "users", column: "created_by_user_id"
+  add_foreign_key "songs", "users", column: "updated_by_user_id"
 end

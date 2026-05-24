@@ -9,6 +9,7 @@
     </div>
   <% end %>
 
+  <%# 基本情報 %>
   <div class="card bg-base-100 shadow-sm">
     <div class="card-body gap-4">
       <h2 class="card-title text-lg">基本情報</h2>
@@ -18,22 +19,12 @@
         <%= f.text_field :title, class: "input input-bordered w-full", placeholder: "楽曲タイトル" %>
       </div>
 
-      <div class="grid grid-cols-2 gap-4">
-        <div class="form-control">
-          <label class="label"><span class="label-text">種別 <span class="text-error">*</span></span></label>
-          <%= f.select :song_type,
-            Song.song_types.keys.map { |k| [k.upcase, k] },
-            {},
-            class: "select select-bordered w-full" %>
-        </div>
-
-        <div class="form-control">
-          <label class="label"><span class="label-text">ステータス</span></label>
-          <%= f.select :status,
-            Song.statuses.keys.map { |k| [k, k] },
-            {},
-            class: "select select-bordered w-full" %>
-        </div>
+      <div class="form-control">
+        <label class="label"><span class="label-text">ステータス</span></label>
+        <%= f.select :status,
+          Song.statuses.keys.map { |k| [k, k] },
+          {},
+          class: "select select-bordered w-full" %>
       </div>
 
       <div class="form-control">
@@ -43,44 +34,254 @@
     </div>
   </div>
 
-  <div class="card bg-base-100 shadow-sm">
+  <%# アーティスト（インクリメンタルサーチ + 新規登録） %>
+  <div class="card bg-base-100 shadow-sm"
+    x-data="{
+      query: '<%= j song.artist&.name.to_s %>',
+      results: [],
+      selectedId: '<%= song.artist_id.to_s %>',
+      open: false,
+      isNew: false,
+      artistType: 'person',
+      debounce: null,
+
+      search() {
+        clearTimeout(this.debounce)
+        if (!this.query) { this.results = []; this.open = false; return }
+        this.debounce = setTimeout(() => {
+          fetch(`/api/admin/artists?q=${encodeURIComponent(this.query)}`, { credentials: 'same-origin' })
+            .then(r => r.json())
+            .then(data => {
+              this.results = [{ id: 'new', label: '+ 新規アーティストを登録' }, ...data]
+              this.open = true
+            })
+        }, 300)
+      },
+
+      select(item) {
+        this.selectedId = item.id
+        this.query = item.id === 'new' ? '' : item.label
+        this.isNew = item.id === 'new'
+        this.open = false
+        this.artistType = 'person'
+      }
+    }">
     <div class="card-body gap-4">
       <h2 class="card-title text-lg">アーティスト</h2>
 
-      <div class="form-control">
+      <div class="form-control relative">
         <label class="label"><span class="label-text">アーティスト <span class="text-error">*</span></span></label>
-        <%= f.select :artist_id,
-          Artist.order(:name).map { |a| ["#{a.name}（#{a.artist_type}）", a.id] },
-          { include_blank: "選択してください" },
-          class: "select select-bordered w-full" %>
+        <input type="text" class="input input-bordered w-full"
+          placeholder="名前で検索..."
+          x-model="query"
+          @input="search()"
+          @focus="if (query) search()"
+          @keydown.escape="open = false"
+          autocomplete="off">
+        <input type="hidden" name="song[artist_id]" :value="selectedId">
+
+        <div x-show="open" x-cloak @click.outside="open = false"
+          class="absolute top-full left-0 right-0 z-10 mt-1 bg-base-100 border border-base-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+          <template x-for="item in results" :key="item.id">
+            <div @click="select(item)"
+              class="px-4 py-2 cursor-pointer hover:bg-base-200 text-sm"
+              :class="item.id === 'new' ? 'text-primary font-semibold border-b border-base-300' : ''"
+              x-text="item.label">
+            </div>
+          </template>
+          <div x-show="results.length === 0" class="px-4 py-2 text-sm text-base-content/50">
+            候補がありません
+          </div>
+        </div>
+      </div>
+
+      <div x-show="isNew" x-cloak class="flex flex-col gap-3 border border-base-300 rounded-lg p-4">
+        <p class="text-sm font-semibold text-base-content/70">新規アーティスト情報</p>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="form-control">
+            <label class="label"><span class="label-text">名前 <span class="text-error">*</span></span></label>
+            <input type="text" name="song[new_artist][name]" class="input input-bordered w-full" placeholder="アーティスト名">
+          </div>
+          <div class="form-control">
+            <label class="label"><span class="label-text">読み（カナ）</span></label>
+            <input type="text" name="song[new_artist][name_kana]" class="input input-bordered w-full" placeholder="カナ">
+          </div>
+        </div>
+
+        <div class="form-control">
+          <label class="label"><span class="label-text">種別 <span class="text-error">*</span></span></label>
+          <select name="song[new_artist][artist_type]" class="select select-bordered w-full" x-model="artistType">
+            <% Artist.artist_types.keys.each do |t| %>
+              <option value="<%= t %>"><%= t %></option>
+            <% end %>
+          </select>
+        </div>
+
+        <div x-show="artistType === 'character'" x-cloak class="form-control">
+          <label class="label"><span class="label-text">所属アニメ（キャラクターの場合必須）</span></label>
+          <select name="song[new_artist][anime_id]" class="select select-bordered w-full">
+            <option value="">選択してください</option>
+            <% Anime.order(season: :desc, title: :asc).each do |anime| %>
+              <option value="<%= anime.id %>"><%= anime.title %><% if anime.season.present? %>（<%= anime.season %>）<% end %></option>
+            <% end %>
+          </select>
+        </div>
+
+        <div class="form-control">
+          <label class="label"><span class="label-text">画像 URL</span></label>
+          <input type="text" name="song[new_artist][image_url]" class="input input-bordered w-full" placeholder="https://...">
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="card bg-base-100 shadow-sm">
+  <%# 紐付けアニメ（インクリメンタルサーチ + バッジ） %>
+  <div class="card bg-base-100 shadow-sm"
+    x-data="{
+      query: '',
+      results: [],
+      selected: <%= song.anime_songs.includes(:anime).map { |as| { id: as.anime_id, title: as.anime.title, season: as.anime.season, song_type: as.song_type } }.to_json %>,
+      debounce: null,
+
+      search() {
+        clearTimeout(this.debounce)
+        if (!this.query) { this.results = []; return }
+        const ids = this.selected.map(a => a.id)
+        this.debounce = setTimeout(() => {
+          fetch(`/api/admin/animes?q=${encodeURIComponent(this.query)}`, { credentials: 'same-origin' })
+            .then(r => r.json())
+            .then(data => { this.results = data.filter(a => !ids.includes(a.id)) })
+        }, 300)
+      },
+
+      add(anime) {
+        if (!this.selected.find(a => a.id === anime.id)) this.selected.push({ ...anime, song_type: 'op' })
+        this.query = ''
+        this.results = []
+      },
+
+      remove(id) { this.selected = this.selected.filter(a => a.id !== id) }
+    }">
     <div class="card-body gap-4">
       <h2 class="card-title text-lg">紐付けアニメ</h2>
 
-      <div class="form-control">
-        <label class="label">
-          <span class="label-text">アニメ（複数選択可）</span>
-        </label>
-        <div class="border border-base-300 rounded-lg p-3 max-h-60 overflow-y-auto flex flex-col gap-1">
-          <% Anime.order(season: :desc, title: :asc).each do |anime| %>
-            <label class="flex items-center gap-2 cursor-pointer py-1">
-              <input type="checkbox" name="song[anime_ids][]" value="<%= anime.id %>"
-                class="checkbox checkbox-sm checkbox-primary"
-                <%= "checked" if song.animes.include?(anime) %>>
-              <span class="text-sm">
-                <%= anime.title %>
-                <% if anime.season.present? %>
-                  <span class="text-base-content/50 text-xs">（<%= anime.season %>）</span>
-                <% end %>
-              </span>
-            </label>
-          <% end %>
+      <div class="flex flex-wrap gap-2 min-h-8">
+        <template x-for="anime in selected" :key="anime.id">
+          <span class="badge badge-primary gap-1 py-2 h-auto">
+            <span x-text="anime.title + (anime.season ? '（' + anime.season + '）' : '')"></span>
+            <select x-model="anime.song_type" class="select select-xs border-0 bg-transparent text-primary-content min-h-0 h-auto py-0 focus:outline-none">
+              <option value="op">OP</option>
+              <option value="ed">ED</option>
+              <option value="insert">挿入歌</option>
+              <option value="image">イメージ</option>
+            </select>
+            <button type="button" @click="remove(anime.id)" class="btn btn-ghost btn-xs p-0 min-h-0 h-auto leading-none">✕</button>
+          </span>
+        </template>
+        <span x-show="selected.length === 0" class="text-sm text-base-content/40">アニメ未選択</span>
+      </div>
+
+      <div class="form-control relative">
+        <input type="text" class="input input-bordered w-full"
+          placeholder="アニメ名で検索して追加..."
+          x-model="query"
+          @input="search()"
+          autocomplete="off">
+
+        <div x-show="results.length > 0" x-cloak
+          class="absolute top-full left-0 right-0 z-10 mt-1 bg-base-100 border border-base-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+          <template x-for="anime in results" :key="anime.id">
+            <div @click="add(anime)"
+              class="px-4 py-2 cursor-pointer hover:bg-base-200 text-sm"
+              x-text="anime.title + (anime.season ? '（' + anime.season + '）' : '')">
+            </div>
+          </template>
         </div>
       </div>
+
+      <template x-for="(anime, index) in selected" :key="anime.id">
+        <span>
+          <input type="hidden" :name="`song[anime_entries][${index}][anime_id]`" :value="anime.id">
+          <input type="hidden" :name="`song[anime_entries][${index}][song_type]`" :value="anime.song_type">
+        </span>
+      </template>
+    </div>
+  </div>
+
+  <%# 紐付けシリーズ（インクリメンタルサーチ + バッジ） %>
+  <div class="card bg-base-100 shadow-sm"
+    x-data="{
+      query: '',
+      results: [],
+      selected: <%= song.series_songs.includes(:anime_series).map { |ss| { id: ss.anime_series_id, name: ss.anime_series.name, song_type: ss.song_type } }.to_json %>,
+      debounce: null,
+
+      search() {
+        clearTimeout(this.debounce)
+        if (!this.query) { this.results = []; return }
+        const ids = this.selected.map(s => s.id)
+        this.debounce = setTimeout(() => {
+          fetch(`/api/admin/anime_series?q=${encodeURIComponent(this.query)}`, { credentials: 'same-origin' })
+            .then(r => r.json())
+            .then(data => { this.results = data.filter(s => !ids.includes(s.id)) })
+        }, 300)
+      },
+
+      add(series) {
+        if (!this.selected.find(s => s.id === series.id)) this.selected.push({ ...series, song_type: 'op' })
+        this.query = ''
+        this.results = []
+      },
+
+      remove(id) { this.selected = this.selected.filter(s => s.id !== id) }
+    }">
+    <div class="card-body gap-4">
+      <div>
+        <h2 class="card-title text-lg">紐付けシリーズ</h2>
+        <p class="text-xs text-base-content/50 mt-1">特定アニメに紐づかないシリーズ原作 CD 等の場合に設定</p>
+      </div>
+
+      <div class="flex flex-wrap gap-2 min-h-8">
+        <template x-for="series in selected" :key="series.id">
+          <span class="badge badge-secondary gap-1 py-2 h-auto">
+            <span x-text="series.name"></span>
+            <select x-model="series.song_type" class="select select-xs border-0 bg-transparent text-secondary-content min-h-0 h-auto py-0 focus:outline-none">
+              <option value="op">OP</option>
+              <option value="ed">ED</option>
+              <option value="insert">挿入歌</option>
+              <option value="image">イメージ</option>
+            </select>
+            <button type="button" @click="remove(series.id)" class="btn btn-ghost btn-xs p-0 min-h-0 h-auto leading-none">✕</button>
+          </span>
+        </template>
+        <span x-show="selected.length === 0" class="text-sm text-base-content/40">シリーズ未選択</span>
+      </div>
+
+      <div class="form-control relative">
+        <input type="text" class="input input-bordered w-full"
+          placeholder="シリーズ名で検索して追加..."
+          x-model="query"
+          @input="search()"
+          autocomplete="off">
+
+        <div x-show="results.length > 0" x-cloak
+          class="absolute top-full left-0 right-0 z-10 mt-1 bg-base-100 border border-base-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+          <template x-for="series in results" :key="series.id">
+            <div @click="add(series)"
+              class="px-4 py-2 cursor-pointer hover:bg-base-200 text-sm"
+              x-text="series.name">
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <template x-for="(series, index) in selected" :key="series.id">
+        <span>
+          <input type="hidden" :name="`song[series_entries][${index}][anime_series_id]`" :value="series.id">
+          <input type="hidden" :name="`song[series_entries][${index}][song_type]`" :value="series.song_type">
+        </span>
+      </template>
     </div>
   </div>
 

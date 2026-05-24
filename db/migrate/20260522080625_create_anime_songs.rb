@@ -3,7 +3,7 @@ class CreateAnimeSongs < ActiveRecord::Migration[8.1]
     create_table :anime_songs do |t|
       t.references :anime, null: false, foreign_key: true
       t.references :song, null: false, foreign_key: true
-      t.string :song_type, null: false
+      t.integer :song_type, null: false, default: 0
       t.string :episode_range
 
       t.timestamps

@@ -20,5 +20,13 @@ Rails.application.routes.draw do
     resource :annict_sync, only: [ :new, :create ]
   end
 
+  namespace :api do
+    namespace :admin do
+      resources :artists,      only: [ :index ]
+      resources :animes,       only: [ :index ]
+      resources :anime_series, only: [ :index ]
+    end
+  end
+
   get "up" => "rails/health#show", as: :rails_health_check
 end

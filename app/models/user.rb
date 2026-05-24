@@ -4,7 +4,7 @@ class User < ApplicationRecord
 
   has_many :reviews, dependent: :destroy
 
-  enum :role, { general: 0, reviewer: 1, admin: 2 }
+  enum :role, { general: 0, reviewer: 1, admin: 2, ai: 3 }
 
   validates :trusted_count, numericality: { greater_than_or_equal_to: 0 }
 

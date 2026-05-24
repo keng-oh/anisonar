@@ -1,11 +1,14 @@
 class Song < ApplicationRecord
   belongs_to :artist
+  belongs_to :created_by_user, class_name: "User", optional: true
+  belongs_to :updated_by_user, class_name: "User", optional: true
   has_many :anime_songs, dependent: :destroy
   has_many :animes, through: :anime_songs
+  has_many :series_songs, dependent: :destroy
+  has_many :anime_series, through: :series_songs
   has_many :platform_links, dependent: :destroy
   has_many :reviews, dependent: :destroy
 
-  enum :song_type, { op: 0, ed: 1, insert: 2, image: 3 }, prefix: :song
   enum :status, { pending: 0, reviewing: 1, approved: 2, rejected: 3 }
 
   validates :title, presence: true
