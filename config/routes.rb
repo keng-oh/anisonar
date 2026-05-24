@@ -6,11 +6,15 @@ Rails.application.routes.draw do
 
   root to: "animes#index"
   resources :animes, only: [ :index, :show ]
-  resources :songs, only: [ :show ]
+  resources :anime_series, only: [ :show ]
 
   namespace :admin do
     root to: "animes#index"
-    resources :animes, only: [ :index, :edit, :update ]
+    resources :animes, only: [ :index, :edit, :update ] do
+      member do
+        post :ai_song_research
+      end
+    end
     resources :songs, only: [ :index, :new, :create, :edit, :update ] do
       member do
         patch :approve

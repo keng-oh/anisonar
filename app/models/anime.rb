@@ -14,4 +14,5 @@ class Anime < ApplicationRecord
   scope :by_season, ->(season) { where(season:) }
   scope :airing, -> { where(status: :airing) }
   scope :search, ->(q) { where("title ILIKE :q OR title_en ILIKE :q", q: "%#{sanitize_sql_like(q)}%") }
+  scope :by_popularity, -> { order(watchers_count: :desc) }
 end

@@ -1,7 +1,13 @@
 <% content_for :title, "#{@anime.title} 編集 | 管理画面" %>
 
-<div class="mb-4">
+<div class="mb-4 flex items-center justify-between">
   <%= link_to "← 一覧に戻る", admin_animes_path, class: "btn btn-ghost btn-sm" %>
+  <%= button_to ai_song_research_admin_anime_path(@anime),
+        method: :post,
+        class: "btn btn-accent btn-sm",
+        data: { turbo_confirm: "「#{@anime.title}」の楽曲を AI で取り込みます。よろしいですか？" } do %>
+    🤖 AI で楽曲取り込み
+  <% end %>
 </div>
 
 <div class="card bg-base-100 shadow max-w-xl">

@@ -41,12 +41,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_24_022159) do
     t.string "cover_image_url"
     t.datetime "created_at", null: false
     t.integer "media_type", default: 0, null: false
+    t.string "official_site_url"
     t.string "season"
     t.integer "series_order"
     t.integer "status", default: 0, null: false
     t.string "title", null: false
     t.string "title_en"
     t.datetime "updated_at", null: false
+    t.integer "watchers_count", default: 0, null: false
+    t.string "wikipedia_url"
     t.index ["anime_series_id"], name: "index_animes_on_anime_series_id"
     t.index ["annict_id"], name: "index_animes_on_annict_id", unique: true
   end

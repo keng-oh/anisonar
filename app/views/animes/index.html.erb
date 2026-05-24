@@ -20,31 +20,15 @@
   <% end %>
 </div>
 
-<% if @animes.any? %>
+<% if @series_groups.any? || @standalone_animes.any? %>
   <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-6">
-    <% @animes.each do |anime| %>
-      <%= link_to anime_path(anime), class: "card bg-base-100 shadow hover:shadow-md transition-shadow cursor-pointer" do %>
-        <figure class="aspect-[3/4] bg-base-300">
-          <% if anime.cover_image_url.present? %>
-            <img src="<%= anime.cover_image_url %>" alt="<%= anime.title %>" class="w-full h-full object-cover">
-          <% else %>
-            <div class="w-full h-full flex items-center justify-center text-4xl">🎌</div>
-          <% end %>
-        </figure>
-        <div class="card-body p-2">
-          <p class="text-sm font-semibold line-clamp-2"><%= anime.title %></p>
-          <% if anime.season.present? %>
-            <p class="text-xs text-base-content/60"><%= anime.season %></p>
-          <% end %>
-          <div class="flex gap-1 flex-wrap">
-            <span class="badge badge-ghost badge-xs"><%= anime.media_type %></span>
-          </div>
-        </div>
-      <% end %>
+    <% @series_groups.each do |series, animes| %>
+      <%= render "series_card", series: series, animes: animes %>
+    <% end %>
+    <% @standalone_animes.each do |anime| %>
+      <%= render "anime_card", anime: anime %>
     <% end %>
   </div>
-
-
 <% else %>
   <div class="hero py-20">
     <div class="hero-content text-center">

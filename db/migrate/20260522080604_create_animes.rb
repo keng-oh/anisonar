@@ -10,6 +10,9 @@ class CreateAnimes < ActiveRecord::Migration[8.1]
       t.integer :series_order
       t.integer :status, null: false, default: 0
       t.string :cover_image_url
+      t.string :official_site_url
+      t.string :wikipedia_url
+      t.integer :watchers_count, null: false, default: 0
 
       t.timestamps
     end

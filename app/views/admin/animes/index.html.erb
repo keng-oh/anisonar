@@ -5,11 +5,28 @@
   <span class="badge badge-outline"><%= @animes.count %> 件</span>
 </div>
 
-<%= form_with url: admin_animes_path, method: :get, class: "mb-4 flex gap-2" do |f| %>
-  <label class="input input-bordered flex items-center gap-2 flex-1">
+<%= form_with url: admin_animes_path, method: :get, class: "mb-4 flex flex-wrap gap-2 items-end" do |f| %>
+  <label class="input input-bordered flex items-center gap-2 flex-1 min-w-48">
     <%= f.text_field :q, value: params[:q], placeholder: "タイトルで検索", class: "grow" %>
   </label>
-  <%= f.submit "検索", class: "btn btn-primary" %>
+
+  <%= f.select :media_type,
+        [["メディア: 全て", ""],
+         ["TV", "tv"], ["映画", "movie"], ["OVA", "ova"], ["ONA", "ona"], ["その他", "special"]],
+        { selected: params[:media_type] },
+        class: "select select-bordered" %>
+
+  <%= f.select :status,
+        [["ステータス: 全て", ""], ["放送中", "airing"], ["終了", "finished"]],
+        { selected: params[:status] },
+        class: "select select-bordered" %>
+
+  <%= f.select :sort,
+        [["シーズン新しい順", "season"], ["人気順", "popularity"], ["タイトル順", "title"]],
+        { selected: params[:sort] || "season" },
+        class: "select select-bordered" %>
+
+  <%= f.submit "絞り込み", class: "btn btn-primary" %>
   <%= link_to "クリア", admin_animes_path, class: "btn btn-ghost" %>
 <% end %>
 
@@ -22,6 +39,8 @@
         <th>メディア</th>
         <th>シーズン</th>
         <th>ステータス</th>
+        <th>楽曲数</th>
+        <th>視聴者数</th>
         <th></th>
       </tr>
     </thead>
@@ -44,8 +63,18 @@
               <%= anime.airing? ? "放送中" : "終了" %>
             </span>
           </td>
+          <td class="text-sm text-right"><%= anime.anime_songs.size %></td>
+          <td class="text-sm text-right"><%= number_with_delimiter(anime.watchers_count) %></td>
           <td>
-            <%= link_to "編集", edit_admin_anime_path(anime), class: "btn btn-ghost btn-xs" %>
+            <div class="flex gap-1 justify-end">
+              <%= link_to "編集", edit_admin_anime_path(anime), class: "btn btn-ghost btn-xs" %>
+              <%= button_to ai_song_research_admin_anime_path(anime),
+                    method: :post,
+                    class: "btn btn-accent btn-xs",
+                    data: { turbo_confirm: "「#{anime.title}」の楽曲を AI で取り込みます。よろしいですか？" } do %>
+                🤖 AI取り込み
+              <% end %>
+            </div>
           </td>
         </tr>
       <% end %>

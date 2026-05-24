@@ -12,7 +12,6 @@ class Song < ApplicationRecord
   enum :status, { pending: 0, reviewing: 1, approved: 2, rejected: 3 }
 
   validates :title, presence: true
-  validates :song_type, presence: true
 
   scope :approved, -> { where(status: :approved) }
   scope :pending_review, -> { where(status: [ :pending, :reviewing ]) }

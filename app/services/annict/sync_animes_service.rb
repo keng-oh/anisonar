@@ -10,6 +10,9 @@ module Annict
             media
             seasonYear
             seasonName
+            officialSiteUrl
+            wikipediaUrl
+            watchersCount
             image {
               recommendedImageUrl
             }
@@ -87,12 +90,15 @@ module Annict
 
         Anime.find_or_initialize_by(annict_id: node["annictId"].to_s).tap do |anime|
           anime.assign_attributes(
-            title:           node["title"],
-            title_en:        node["titleEn"].presence,
-            media_type:      MEDIA_TYPE_MAP.fetch(node["media"], :special),
-            season:          build_season(node["seasonYear"], node["seasonName"]),
-            status:          infer_status(node["seasonYear"]),
-            cover_image_url: node.dig("image", "recommendedImageUrl"),
+            title:             node["title"],
+            title_en:          node["titleEn"].presence,
+            media_type:        MEDIA_TYPE_MAP.fetch(node["media"], :special),
+            season:            build_season(node["seasonYear"], node["seasonName"]),
+            status:            infer_status(node["seasonYear"]),
+            cover_image_url:   node.dig("image", "recommendedImageUrl"),
+            official_site_url: node["officialSiteUrl"].presence,
+            wikipedia_url:     node["wikipediaUrl"].presence,
+            watchers_count:    node["watchersCount"].to_i,
             anime_series:
           )
           anime.save!

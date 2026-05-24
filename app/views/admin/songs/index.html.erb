@@ -16,11 +16,9 @@
           <div class="flex flex-col sm:flex-row sm:items-start gap-3">
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 mb-1 flex-wrap">
-                <span class="badge badge-primary badge-sm"><%= song.song_type.upcase %></span>
                 <span class="badge <%= song.pending? ? 'badge-warning' : 'badge-info' %> badge-sm">
                   <%= song.status %>
                 </span>
-                <span class="badge badge-ghost badge-sm"><%= song.registered_by %></span>
               </div>
               <p class="font-semibold text-lg"><%= song.title %></p>
               <p class="text-sm text-base-content/60">アーティスト: <%= song.artist.name %></p>
