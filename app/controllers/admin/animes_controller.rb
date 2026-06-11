@@ -27,6 +27,16 @@ module Admin
       redirect_to edit_admin_anime_path(anime), notice: "「#{anime.title}」の楽曲取り込みをバックグラウンドで開始しました"
     end
 
+    def bulk_ai_song_research
+      limit = (params[:limit].presence || 10).to_i.clamp(1, 100)
+      animes = Anime.left_joins(:anime_songs)
+                    .where(anime_songs: { id: nil })
+                    .order(watchers_count: :desc)
+                    .limit(limit)
+      animes.each_with_index { |anime, i| AiSongResearchJob.set(wait: i * 30.seconds).perform_later(anime.id) }
+      redirect_to admin_animes_path, notice: "#{animes.size} 件の楽曲取り込みをバックグラウンドで開始しました"
+    end
+
     private
 
       def anime_params

@@ -56,16 +56,20 @@ module Songs
       - OP/ED が複数ある場合は全て列挙する
       - 挿入歌・イメージソングは確実な情報のみ。推測は除外
       - 該当作品の楽曲のみ。シリーズ別作の楽曲は混ぜない
-      - 最後に必ず submit_anime_songs ツールで結果を返す
+
+      【重要】調査結果に関わらず、必ず最後に submit_anime_songs ツールを呼ぶこと。
+      楽曲が見つからなかった場合・確認できなかった場合は songs を空配列 [] にして呼ぶこと。
+      テキストで回答せず、必ずツールで返すこと。
     PROMPT
 
     def self.call(**kwargs)
       new(**kwargs).call
     end
 
-    def initialize(anime:, client: Ai::ClaudeClient.new)
-      @anime  = anime
-      @client = client
+    def initialize(anime:, client: Ai::ClaudeClient.new, firecrawl: Ai::FirecrawlClient.new)
+      @anime     = anime
+      @client    = client
+      @firecrawl = firecrawl
     end
 
     def call
@@ -77,7 +81,13 @@ module Songs
       )
 
       items = extract_submitted_songs(response)
-      raise Error, "Claude did not call #{SUBMIT_TOOL_NAME}" if items.nil?
+
+      if items.nil?
+        # ツールを呼ばずテキストで返した場合（楽曲情報なし・調査不能なケース）
+        Rails.logger.warn "[AiResearcher] #{SUBMIT_TOOL_NAME} not called for anime_id=#{@anime.id} " \
+                          "title=#{@anime.title} response=#{text_response(response)}"
+        items = []
+      end
 
       { items: items, raw_response: response }
     end
@@ -94,16 +104,45 @@ module Songs
         parts << "シリーズ: #{@anime.anime_series.name}" if @anime.anime_series.present?
         parts << "メディア: #{@anime.media_type}"
 
-        priority_urls = [ @anime.wikipedia_url, @anime.official_site_url ].compact_blank
-        if priority_urls.any?
+        scraped = scrape_priority_urls
+        if scraped.any?
           parts << ""
-          parts << "優先調査 URL（必ず最初に確認すること）:"
-          priority_urls.each { |url| parts << "- #{url}" }
+          parts << "## 事前取得済みのページ内容（これを最優先で参照すること）"
+          scraped.each do |url, markdown|
+            parts << ""
+            parts << "### #{url}"
+            parts << markdown
+          end
+        else
+          # Firecrawl が使えない場合は URL ヒントのみ渡す（従来の挙動）
+          priority_urls = [ @anime.wikipedia_url, @anime.official_site_url ].compact_blank
+          if priority_urls.any?
+            parts << ""
+            parts << "優先調査 URL（必ず最初に確認すること）:"
+            priority_urls.each { |url| parts << "- #{url}" }
+          end
         end
 
         parts.join("\n")
       end
 
+      # wikipedia_url / official_site_url を Firecrawl でスクレイプする。
+      # 失敗した URL はスキップして警告ログだけ残す。
+      # @return [Hash<String, String>] { url => markdown }
+      def scrape_priority_urls
+        urls = [ @anime.wikipedia_url, @anime.official_site_url ].compact_blank
+        return {} if urls.empty?
+
+        urls.each_with_object({}) do |url, hash|
+          markdown = @firecrawl.scrape(url)
+          hash[url] = markdown if markdown.present?
+        rescue Ai::FirecrawlClient::Error => e
+          Rails.logger.warn "[AiResearcher] Firecrawl スキップ url=#{url} reason=#{e.message}"
+        end
+      end
+
+      # submit_anime_songs ツール呼び出しから楽曲リストを取り出す。
+      # ツールが呼ばれなかった場合は nil を返す（呼び出し元でフォールバック処理）。
       def extract_submitted_songs(response)
         content = Array(response["content"])
         tool_use = content.find { |c| c["type"] == "tool_use" && c["name"] == SUBMIT_TOOL_NAME }
@@ -117,6 +156,15 @@ module Songs
             source_url:  s["source_url"]
           }
         end
+      end
+
+      # Claude がテキストで返した場合の内容をログ用に取り出す。
+      def text_response(response)
+        Array(response["content"])
+          .select { |c| c["type"] == "text" }
+          .map { |c| c["text"] }
+          .join("\n")
+          .truncate(200)
       end
   end
 end

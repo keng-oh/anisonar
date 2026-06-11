@@ -13,7 +13,7 @@ services:
     <<: *app
     command: bash -c "rm -f /app/tmp/pids/server.pid && ./bin/rails server -b 0.0.0.0"
     ports:
-      - "3000:3000"
+      - '3000:3000'
     depends_on:
       db:
         condition: service_healthy
@@ -44,9 +44,9 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - '5432:5432'
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
       interval: 5s
       timeout: 5s
       retries: 5
@@ -54,12 +54,12 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - '6379:6379'
 
   mailhog:
     image: mailhog/mailhog
     ports:
-      - "8025:8025"
+      - '8025:8025'
 
 volumes:
   postgres_data:

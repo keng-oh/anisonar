@@ -11,6 +11,9 @@ Rails.application.routes.draw do
   namespace :admin do
     root to: "animes#index"
     resources :animes, only: [ :index, :edit, :update ] do
+      collection do
+        post :bulk_ai_song_research
+      end
       member do
         post :ai_song_research
       end
