@@ -1,35 +1,33 @@
 <% content_for :title, "アニメ一覧 | Anisonar" %>
 
-<div class="mb-6">
-  <h1 class="text-3xl font-bold mb-4">アニメ一覧</h1>
+<div class="hero bg-gradient-to-br from-primary/20 to-secondary/20 rounded-2xl mb-10 py-12 px-4">
+  <div class="hero-content text-center w-full">
+    <div class="w-full max-w-2xl">
+      <h1 class="text-3xl font-bold mb-1">🎵 Anisonar</h1>
+      <p class="text-base-content/60 mb-6">あのアニソンに出会える場所</p>
 
-  <%= form_with url: animes_path, method: :get, class: "flex flex-wrap gap-2" do |f| %>
-    <label class="input input-bordered flex items-center gap-2 flex-1 min-w-48">
-      <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
-      </svg>
-      <%= f.text_field :q, value: params[:q], placeholder: "タイトルで検索", class: "grow" %>
-    </label>
+      <%= form_with url: animes_path, method: :get, class: "flex flex-wrap gap-2 justify-center" do |f| %>
+        <label class="input input-bordered input-lg flex items-center gap-2 flex-1 min-w-64 max-w-md bg-base-100">
+          <svg class="h-5 w-5 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+          </svg>
+          <%= f.text_field :q, value: params[:q], placeholder: "アニメタイトルで検索", class: "grow" %>
+        </label>
 
-    <%= f.select :season,
-      options_for_select([["全シーズン", ""]] + @seasons.map { |s| [s, s] }, params[:season]),
-      {}, class: "select select-bordered" %>
+        <%= f.select :season,
+          options_for_select([["全シーズン", ""]] + @seasons.map { |s| [season_label(s), s] }, params[:season]),
+          {}, class: "select select-bordered select-lg bg-base-100" %>
 
-    <%= f.submit "検索", class: "btn btn-primary" %>
-    <%= link_to "クリア", animes_path, class: "btn btn-ghost" %>
-  <% end %>
+        <%= f.submit "検索", class: "btn btn-primary btn-lg" %>
+        <% if params[:q].present? || params[:season].present? %>
+          <%= link_to "クリア", animes_path, class: "btn btn-ghost btn-lg" %>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
 </div>
 
-<% if @series_groups.any? || @standalone_animes.any? %>
-  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-6">
-    <% @series_groups.each do |series, animes| %>
-      <%= render "series_card", series: series, animes: animes %>
-    <% end %>
-    <% @standalone_animes.each do |anime| %>
-      <%= render "anime_card", anime: anime %>
-    <% end %>
-  </div>
-<% else %>
+<% if @latest_animes.empty? && @series_groups.empty? && @standalone_animes.empty? %>
   <div class="hero py-20">
     <div class="hero-content text-center">
       <div>
@@ -38,4 +36,31 @@
       </div>
     </div>
   </div>
+<% else %>
+  <% if @latest_animes.any? %>
+    <section class="mb-10">
+      <h2 class="text-xl font-bold mb-4">最新のアニメ楽曲</h2>
+      <div class="flex gap-4 overflow-x-auto pb-2">
+        <% @latest_animes.each do |anime| %>
+          <div class="w-36 shrink-0">
+            <%= render "anime_card", anime: anime %>
+          </div>
+        <% end %>
+      </div>
+    </section>
+  <% end %>
+
+  <% if @series_groups.any? || @standalone_animes.any? %>
+    <section>
+      <h2 class="text-xl font-bold mb-4">人気のアニメ楽曲</h2>
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <% @series_groups.each do |series, animes| %>
+          <%= render "series_card", series: series, animes: animes %>
+        <% end %>
+        <% @standalone_animes.each do |anime| %>
+          <%= render "anime_card", anime: anime %>
+        <% end %>
+      </div>
+    </section>
+  <% end %>
 <% end %>

@@ -9,7 +9,7 @@
   <div class="card-body p-2">
     <p class="text-sm font-semibold line-clamp-2"><%= anime.title %></p>
     <% if anime.season.present? %>
-      <p class="text-xs text-base-content/60"><%= anime.season %></p>
+      <p class="text-xs text-base-content/60"><%= season_label(anime.season) %></p>
     <% end %>
     <div class="flex gap-1 flex-wrap">
       <span class="badge badge-ghost badge-xs"><%= anime.media_type %></span>

@@ -13,12 +13,16 @@ Rails.application.routes.draw do
     resources :animes, only: [ :index, :edit, :update ] do
       collection do
         post :bulk_ai_song_research
+        post :bulk_cover_image_resolve
       end
       member do
         post :ai_song_research
       end
     end
     resources :songs, only: [ :index, :new, :create, :edit, :update ] do
+      collection do
+        post :bulk_spotify_resolve
+      end
       member do
         patch :approve
         patch :reject

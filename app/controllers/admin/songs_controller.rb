@@ -41,6 +41,7 @@ module Admin
     def approve
       song = Song.find(params[:id])
       song.approve!
+      SpotifyTrackResolveJob.perform_later(song.id) if song.spotify_link.nil?
       redirect_to admin_songs_path, notice: "「#{song.title}」を承認しました"
     end
 
@@ -48,6 +49,16 @@ module Admin
       song = Song.find(params[:id])
       song.reject!
       redirect_to admin_songs_path, notice: "「#{song.title}」を否認しました"
+    end
+
+    def bulk_spotify_resolve
+      limit = (params[:limit].presence || 20).to_i.clamp(1, 100)
+      songs = Song.approved
+                  .left_joins(:platform_links)
+                  .where(platform_links: { id: nil })
+                  .limit(limit)
+      songs.each { |song| SpotifyTrackResolveJob.perform_later(song.id) }
+      redirect_to admin_songs_path, notice: "#{songs.size} 件のSpotify検索を開始しました"
     end
 
     private

@@ -22,7 +22,7 @@
         <div class="card-body p-2">
           <p class="text-xs font-semibold line-clamp-2"><%= anime.title %></p>
           <% if anime.season.present? %>
-            <p class="text-xs text-base-content/60"><%= anime.season %></p>
+            <p class="text-xs text-base-content/60"><%= season_label(anime.season) %></p>
           <% end %>
         </div>
       <% end %>

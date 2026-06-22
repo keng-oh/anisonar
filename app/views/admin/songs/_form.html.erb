@@ -123,7 +123,7 @@
           <select name="song[new_artist][anime_id]" class="select select-bordered w-full">
             <option value="">選択してください</option>
             <% Anime.order(season: :desc, title: :asc).each do |anime| %>
-              <option value="<%= anime.id %>"><%= anime.title %><% if anime.season.present? %>（<%= anime.season %>）<% end %></option>
+              <option value="<%= anime.id %>"><%= anime.title %><% if anime.season.present? %>（<%= season_label(anime.season) %>）<% end %></option>
             <% end %>
           </select>
         </div>
@@ -141,7 +141,7 @@
     x-data="{
       query: '',
       results: [],
-      selected: <%= song.anime_songs.includes(:anime).map { |as| { id: as.anime_id, title: as.anime.title, season: as.anime.season, song_type: as.song_type } }.to_json %>,
+      selected: <%= song.anime_songs.includes(:anime).map { |as| { id: as.anime_id, title: as.anime.title, season: season_label(as.anime.season), song_type: as.song_type } }.to_json %>,
       debounce: null,
 
       search() {

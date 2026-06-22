@@ -1,12 +1,14 @@
 class AnimesController < ApplicationController
   def index
-    animes = Anime.all
-    animes = animes.search(params[:q]) if params[:q].present?
-    animes = animes.by_season(params[:season]) if params[:season].present?
-    animes = animes.includes(:anime_series).order(season: :desc, title: :asc)
+    base = Anime.with_songs.includes(:anime_series)
+    base = base.search(params[:q]) if params[:q].present?
+    base = base.by_season(params[:season]) if params[:season].present?
 
-    grouped = animes.group_by(&:anime_series)
-    @series_groups = grouped.reject { |s, _| s.nil? }.sort_by { |s, _| s.name }
+    @latest_animes = base.order(season: :desc, title: :asc).limit(12)
+
+    grouped = base.order(watchers_count: :desc).group_by(&:anime_series)
+    @series_groups = grouped.reject { |s, _| s.nil? }
+      .sort_by { |_, series_animes| -series_animes.map(&:watchers_count).max }
     @standalone_animes = grouped[nil] || []
 
     @seasons = Anime.distinct.pluck(:season).compact.sort.reverse

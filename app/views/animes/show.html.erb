@@ -28,7 +28,7 @@
     <div class="flex flex-wrap gap-2">
       <span class="badge badge-outline"><%= @anime.media_type.upcase %></span>
       <% if @anime.season.present? %>
-        <span class="badge badge-outline"><%= @anime.season %></span>
+        <span class="badge badge-outline"><%= season_label(@anime.season) %></span>
       <% end %>
       <span class="badge <%= @anime.airing? ? 'badge-success' : 'badge-ghost' %>">
         <%= @anime.airing? ? "放送中" : "放送終了" %>

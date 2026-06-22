@@ -4,13 +4,13 @@
   <h1 class="text-2xl font-bold">アニメ一覧</h1>
   <div class="flex items-center gap-3">
     <span class="badge badge-outline"><%= @animes.count %> 件</span>
-    <%= form_with url: bulk_ai_song_research_admin_animes_path, method: :post, class: "flex items-center gap-2" do |f| %>
+    <%= form_with url: bulk_cover_image_resolve_admin_animes_path, method: :post, class: "flex items-center gap-2" do |f| %>
       <%= f.select :limit, [["10件", 10], ["20件", 20], ["50件", 50]],
-            { selected: 10 },
+            { selected: 20 },
             class: "select select-bordered select-sm" %>
-      <%= f.submit "楽曲未登録を一括AI取り込み",
-            class: "btn btn-accent btn-sm",
-            data: { turbo_confirm: "楽曲未登録のアニメを人気順で取り込みます。よろしいですか？" } %>
+      <%= f.submit "画像未取得を一括解決",
+            class: "btn btn-secondary btn-sm",
+            data: { turbo_confirm: "画像未取得のアニメをAniListから検索します。よろしいですか？" } %>
     <% end %>
   </div>
 </div>
@@ -67,7 +67,7 @@
           </td>
           <td class="text-sm"><%= anime.anime_series&.name %></td>
           <td><span class="badge badge-ghost badge-sm"><%= anime.media_type.upcase %></span></td>
-          <td class="text-sm"><%= anime.season %></td>
+          <td class="text-sm"><%= season_label(anime.season) %></td>
           <td>
             <span class="badge <%= anime.airing? ? 'badge-success' : 'badge-ghost' %> badge-sm">
               <%= anime.airing? ? "放送中" : "終了" %>
@@ -78,12 +78,6 @@
           <td>
             <div class="flex gap-1 justify-end">
               <%= link_to "編集", edit_admin_anime_path(anime), class: "btn btn-ghost btn-xs" %>
-              <%= button_to ai_song_research_admin_anime_path(anime),
-                    method: :post,
-                    class: "btn btn-accent btn-xs",
-                    data: { turbo_confirm: "「#{anime.title}」の楽曲を AI で取り込みます。よろしいですか？" } do %>
-                🤖 AI取り込み
-              <% end %>
             </div>
           </td>
         </tr>
