@@ -1,0 +1,9 @@
+<% btn_extra = mobile ? "justify-start w-full" : "" %>
+<% if user_signed_in? %>
+  <% if current_user.admin? %>
+    <%= link_to "管理画面", admin_root_path, class: "btn btn-ghost btn-sm #{btn_extra}" %>
+  <% end %>
+  <%= button_to "ログアウト", destroy_user_session_path, method: :delete, class: "btn btn-ghost btn-sm #{btn_extra}" %>
+<% else %>
+  <%= link_to "ログイン", new_user_session_path, class: "btn btn-outline btn-primary btn-sm #{btn_extra}" %>
+<% end %>

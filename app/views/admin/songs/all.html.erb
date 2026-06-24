@@ -1,0 +1,75 @@
+<% content_for :title, "楽曲一覧 | 管理画面" %>
+
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-bold">楽曲一覧</h1>
+  <span class="badge badge-outline"><%= @songs.count %> 件</span>
+</div>
+
+<%= form_with url: all_admin_songs_path, method: :get, class: "mb-4 flex flex-wrap gap-2 items-end" do |f| %>
+  <label class="input input-bordered flex items-center gap-2 flex-1 min-w-48">
+    <%= f.text_field :q, value: params[:q], placeholder: "タイトル・アーティストで検索", class: "grow" %>
+  </label>
+
+  <%= f.select :status,
+        [ [ "ステータス: 全て", "" ], [ "承認待ち", "pending" ], [ "レビュー中", "reviewing" ], [ "承認済み", "approved" ], [ "否認", "rejected" ] ],
+        { selected: params[:status] },
+        class: "select select-bordered" %>
+
+  <%= f.select :sort,
+        [ [ "新しい順", "newest" ], [ "古い順", "oldest" ], [ "タイトル順", "title" ], [ "承認数順", "approve" ] ],
+        { selected: params[:sort] || "newest" },
+        class: "select select-bordered" %>
+
+  <%= f.submit "絞り込み", class: "btn btn-primary" %>
+  <%= link_to "クリア", all_admin_songs_path, class: "btn btn-ghost" %>
+<% end %>
+
+<div class="overflow-x-auto">
+  <table class="table table-zebra">
+    <thead>
+      <tr>
+        <th>タイトル</th>
+        <th>アーティスト</th>
+        <th>アニメ・種別</th>
+        <th>ステータス</th>
+        <th>承認</th>
+        <th>否認</th>
+        <th>Spotify</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @songs.each do |song| %>
+        <tr>
+          <td class="font-semibold"><%= song.title %></td>
+          <td class="text-sm"><%= song.artist.name %></td>
+          <td class="text-sm">
+            <% song.anime_songs.each do |as| %>
+              <div class="flex items-center gap-1.5 mb-0.5">
+                <span class="badge badge-xs <%= song_type_badge_class(as.song_type) %>"><%= song_type_label(as.song_type) %></span>
+                <span class="truncate"><%= as.anime.title %></span>
+              </div>
+            <% end %>
+          </td>
+          <td>
+            <span class="badge badge-sm <%= song_status_badge_class(song.status) %>"><%= song_status_label(song.status) %></span>
+          </td>
+          <td class="text-success font-bold text-sm"><%= song.approve_count %></td>
+          <td class="text-error font-bold text-sm"><%= song.reject_count %></td>
+          <td class="text-sm">
+            <% if song.spotify_link %>
+              <span class="badge badge-success badge-sm">連携済み</span>
+            <% else %>
+              <span class="badge badge-ghost badge-sm">未連携</span>
+            <% end %>
+          </td>
+          <td>
+            <div class="flex gap-1 justify-end">
+              <%= link_to "編集", edit_admin_song_path(song), class: "btn btn-ghost btn-xs" %>
+            </div>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

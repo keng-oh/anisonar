@@ -1,0 +1,174 @@
+<% content_for :title, "ダッシュボード | 管理画面" %>
+
+<div class="mb-6">
+  <h1 class="text-2xl font-bold tracking-tight">ダッシュボード</h1>
+  <p class="text-sm opacity-40 mt-1"><%= l(Date.current, format: "%Y年%-m月%-d日") %></p>
+</div>
+
+<!-- Stats -->
+<div class="stats shadow bg-base-100 w-full mb-6 border border-base-300 stats-vertical sm:stats-horizontal">
+  <div class="stat">
+    <div class="stat-figure text-primary">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+        <path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="stat-title">承認待ち楽曲</div>
+    <div class="stat-value text-primary"><%= @pending_review_count %></div>
+    <div class="stat-desc text-success font-medium">↑<%= @pending_songs_this_week %>件 今週</div>
+  </div>
+
+  <div class="stat">
+    <div class="stat-figure text-secondary">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+        <path d="M9 18V5l12-2v13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="6" cy="18" r="3" stroke="currentColor" stroke-width="2"/>
+        <circle cx="18" cy="16" r="3" stroke="currentColor" stroke-width="2"/>
+      </svg>
+    </div>
+    <div class="stat-title">登録済み楽曲</div>
+    <div class="stat-value text-secondary"><%= @approved_songs_count %></div>
+    <div class="stat-desc text-success font-medium">↑<%= @approved_songs_this_month %>件 今月</div>
+  </div>
+
+  <div class="stat">
+    <div class="stat-figure opacity-30">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+        <path d="M4 19.5A2.5 2.5 0 016.5 17H20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" stroke="currentColor" stroke-width="2"/>
+      </svg>
+    </div>
+    <div class="stat-title">アニメ作品数</div>
+    <div class="stat-value"><%= @animes_count %></div>
+    <div class="stat-desc opacity-50">Annict連携 <%= @annict_synced_count %>件</div>
+  </div>
+
+  <div class="stat">
+    <div class="stat-figure opacity-30">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+        <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="currentColor" stroke-width="2"/>
+      </svg>
+    </div>
+    <div class="stat-title">アーティスト数</div>
+    <div class="stat-value"><%= @artists_count %></div>
+    <div class="stat-desc opacity-50">声優・ユニット含む</div>
+  </div>
+</div>
+
+<!-- Content grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+  <!-- Review queue -->
+  <div class="lg:col-span-2 card bg-base-100 shadow-sm border border-base-300">
+    <div class="flex items-center justify-between px-5 pt-4 pb-3 border-b border-base-300">
+      <h2 class="font-semibold text-sm flex items-center gap-2">
+        <% if @pending_review_count.to_i > 0 %>
+          <span class="inline-block w-2 h-2 rounded-full bg-warning"></span>
+        <% end %>
+        レビューキュー
+      </h2>
+      <%= link_to "すべて見る →", admin_songs_path, class: "text-xs text-primary hover:underline" %>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="table table-sm">
+        <thead>
+          <tr>
+            <th>楽曲</th>
+            <th>種別</th>
+            <th>承認</th>
+            <th>否認</th>
+            <th>アクション</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if @review_queue.any? %>
+            <% @review_queue.each do |song| %>
+              <% song_type = song.anime_songs.first&.song_type %>
+              <tr class="hover:bg-base-200">
+                <td>
+                  <div class="font-semibold text-sm"><%= song.title %></div>
+                  <div class="text-xs opacity-40 mt-0.5"><%= song.artist.name %></div>
+                </td>
+                <td>
+                  <span class="badge badge-sm <%= song_type_badge_class(song_type) %>"><%= song_type_label(song_type) %></span>
+                </td>
+                <td class="text-success font-bold text-sm"><%= song.approve_count %></td>
+                <td class="text-error font-bold text-sm"><%= song.reject_count %></td>
+                <td>
+                  <div class="flex gap-1.5">
+                    <%= button_to "承認", approve_admin_song_path(song), method: :patch, class: "btn btn-primary btn-xs",
+                          data: { turbo_confirm: "「#{song.title}」を承認しますか？" } %>
+                    <%= button_to "否認", reject_admin_song_path(song), method: :patch, class: "btn btn-error btn-outline btn-xs",
+                          data: { turbo_confirm: "「#{song.title}」を否認しますか？" } %>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          <% else %>
+            <tr><td colspan="5" class="text-center opacity-40 py-8">レビュー待ちの楽曲はありません</td></tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Right column -->
+  <div class="flex flex-col gap-5">
+
+    <!-- AI Job -->
+    <div class="card bg-base-100 shadow-sm border border-base-300">
+      <div class="card-body p-4">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="font-semibold text-sm">AI収集ジョブ（n8n）</h2>
+          <% if @crawl_in_progress.to_i > 0 %>
+            <div class="flex items-center gap-1.5">
+              <span class="inline-block w-2 h-2 rounded-full bg-success"></span>
+              <span class="badge badge-success badge-sm">実行中</span>
+            </div>
+          <% else %>
+            <span class="badge badge-ghost badge-sm">アイドル</span>
+          <% end %>
+        </div>
+        <% if @crawl_total.to_i > 0 %>
+          <% progress = ((@crawl_total - @crawl_in_progress).to_f / @crawl_total * 100).round %>
+          <p class="text-xs opacity-40 mb-3"><%= @crawl_in_progress %>件処理中...</p>
+          <progress class="progress progress-primary w-full" value="<%= progress %>" max="100"></progress>
+          <div class="flex justify-between text-xs mt-2 opacity-50">
+            <span><%= @crawl_total - @crawl_in_progress %> / <%= @crawl_total %> 完了</span>
+            <span class="font-bold text-primary opacity-100"><%= progress %>%</span>
+          </div>
+        <% else %>
+          <p class="text-xs opacity-40">クロールリクエストはまだありません</p>
+        <% end %>
+        <%= link_to "n8nクロールキューを見る →", crawl_requests_admin_integrations_path, class: "text-xs text-primary hover:underline mt-3 inline-block" %>
+      </div>
+    </div>
+
+    <!-- Song type breakdown -->
+    <div class="card bg-base-100 shadow-sm border border-base-300 flex-1">
+      <div class="card-body p-4">
+        <h2 class="font-semibold text-sm mb-4">楽曲種別内訳（承認済み）</h2>
+        <div class="flex flex-col gap-4">
+          <% text_color_classes = { "op" => "text-primary", "ed" => "text-secondary", "insert" => "text-accent", "image" => "opacity-60" } %>
+          <% progress_classes = { "op" => "progress-primary", "ed" => "progress-secondary", "insert" => "progress-accent", "image" => "" } %>
+          <% %w[op ed insert image].each do |type| %>
+            <% count = @song_type_counts[type] || 0 %>
+            <div>
+              <div class="flex justify-between text-xs mb-1.5">
+                <span class="font-semibold <%= text_color_classes[type] %>">
+                  <%= song_type_label(type) %>
+                </span>
+                <span class="opacity-50 font-medium"><%= count %></span>
+              </div>
+              <progress class="progress <%= progress_classes[type] %> w-full" value="<%= count %>" max="<%= @song_type_max %>" style="height:6px;"></progress>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

@@ -8,6 +8,12 @@ class User < ApplicationRecord
 
   validates :trusted_count, numericality: { greater_than_or_equal_to: 0 }
 
+  AI_USER_EMAIL = "ai@anisonar.internal".freeze
+
+  def self.ai_bot
+    find_by!(email: AI_USER_EMAIL)
+  end
+
   def review_weight
     return 3 if reviewer? || admin?
     return 2 if trusted_count >= 10

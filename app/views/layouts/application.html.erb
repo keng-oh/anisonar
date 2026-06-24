@@ -24,30 +24,70 @@
   </head>
 
   <body class="min-h-screen bg-base-200">
-    <nav class="navbar bg-base-100 shadow-sm px-4">
+    <nav class="navbar bg-base-100/80 border-b border-base-300 sticky top-0 z-50 px-6 min-h-14 h-14" style="backdrop-filter:blur(12px);">
       <div class="navbar-start">
-        <%= link_to "🎵 Anisonar", root_path, class: "text-xl font-bold" %>
+        <%= link_to root_path, class: "flex items-center gap-2.5" do %>
+          <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 bg-linear-to-br from-primary to-secondary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M9 18V5l12-2v13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="6" cy="18" r="3" stroke="white" stroke-width="2"/>
+              <circle cx="18" cy="16" r="3" stroke="white" stroke-width="2"/>
+            </svg>
+          </div>
+          <span class="font-bold tracking-tight">Anisonar</span>
+        <% end %>
+      </div>
+      <div class="navbar-center hidden lg:flex">
+        <%= form_with url: root_path, method: :get, class: "w-80" do |f| %>
+          <label class="input input-sm input-bordered bg-base-200 flex items-center gap-2 w-full">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" class="opacity-40 shrink-0">
+              <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+              <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <%= f.text_field :q, value: params[:q], placeholder: "アニメ・楽曲・アーティスト名で検索...", class: "grow text-sm" %>
+          </label>
+        <% end %>
       </div>
       <div class="navbar-end gap-2">
-        <% if user_signed_in? %>
-          <% if current_user.admin? %>
-            <%= link_to "管理画面", admin_root_path, class: "btn btn-ghost btn-sm" %>
-          <% end %>
-          <%= button_to "ログアウト", destroy_user_session_path, method: :delete, class: "btn btn-ghost btn-sm" %>
-        <% else %>
-          <%= link_to "ログイン", new_user_session_path, class: "btn btn-ghost btn-sm" %>
-        <% end %>
+        <!-- Mobile: collapse search + account links into a dropdown -->
+        <div class="dropdown dropdown-end lg:hidden">
+          <label tabindex="0" class="btn btn-ghost btn-circle btn-sm" aria-label="メニューを開く">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+              <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </label>
+          <div tabindex="0" class="dropdown-content menu bg-base-100 border border-base-300 rounded-box z-50 mt-3 w-72 p-4 shadow gap-3">
+            <%= form_with url: root_path, method: :get do |f| %>
+              <label class="input input-sm input-bordered bg-base-200 flex items-center gap-2 w-full">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" class="opacity-40 shrink-0">
+                  <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+                  <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <%= f.text_field :q, value: params[:q], placeholder: "アニメ・楽曲・アーティスト名で検索...", class: "grow text-sm" %>
+              </label>
+            <% end %>
+            <div class="flex flex-col gap-2">
+              <%= render "layouts/nav_auth_links", mobile: true %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Desktop: inline buttons -->
+        <div class="hidden lg:flex items-center gap-2">
+          <%= render "layouts/nav_auth_links", mobile: false %>
+        </div>
       </div>
     </nav>
 
-    <main class="container mx-auto px-4 py-8 max-w-6xl">
+    <main class="<%= content_for?(:full_bleed) ? "" : "container mx-auto px-4 py-8 max-w-6xl" %>">
       <% if notice %>
-        <div role="alert" class="alert alert-success mb-4">
+        <div role="alert" class="alert alert-success mb-4 <%= "mx-6 mt-4" if content_for?(:full_bleed) %>">
           <span><%= notice %></span>
         </div>
       <% end %>
       <% if alert %>
-        <div role="alert" class="alert alert-error mb-4">
+        <div role="alert" class="alert alert-error mb-4 <%= "mx-6 mt-4" if content_for?(:full_bleed) %>">
           <span><%= alert %></span>
         </div>
       <% end %>

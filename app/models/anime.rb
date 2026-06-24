@@ -13,10 +13,11 @@ class Anime < ApplicationRecord
 
   SEASON_NAME_LABELS = { "spring" => "春", "summer" => "夏", "fall" => "秋", "winter" => "冬" }.freeze
 
-  # "2025-spring" => "2025年春"
+  # "2025-spring" => "2025年春", "2025-" => "2025年放送"
   def self.season_label(season)
     year, name = season.to_s.split("-")
-    return season if year.blank? || name.blank?
+    return season if year.blank?
+    return "#{year}年放送" if name.blank?
 
     "#{year}年#{SEASON_NAME_LABELS.fetch(name, name)}"
   end

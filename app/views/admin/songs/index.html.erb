@@ -4,9 +4,6 @@
   <h1 class="text-2xl font-bold">楽曲レビューキュー</h1>
   <div class="flex items-center gap-2">
     <span class="badge badge-warning badge-outline"><%= @songs.count %> 件 pending</span>
-    <%= button_to "Spotify未連携を一括解決", bulk_spotify_resolve_admin_songs_path, method: :post,
-          class: "btn btn-success btn-sm",
-          data: { turbo_confirm: "承認済みでSpotify未連携の楽曲を検索します。よろしいですか？" } %>
     <%= link_to "楽曲を追加", new_admin_song_path, class: "btn btn-primary btn-sm" %>
   </div>
 </div>

@@ -15,9 +15,15 @@ class Song < ApplicationRecord
 
   scope :approved, -> { where(status: :approved) }
   scope :pending_review, -> { where(status: [ :pending, :reviewing ]) }
+  scope :search, ->(q) { joins(:artist).where("songs.title ILIKE :q OR artists.name ILIKE :q", q: "%#{sanitize_sql_like(q)}%") }
 
   def spotify_link
     platform_links.find_by(platform: :spotify)
+  end
+
+  def spotify_url
+    link = spotify_link
+    "https://open.spotify.com/track/#{link.platform_track_id}" if link
   end
 
   def approve!

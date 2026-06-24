@@ -2,11 +2,10 @@
 
 <div class="mb-4 flex items-center justify-between">
   <%= link_to "← 一覧に戻る", admin_animes_path, class: "btn btn-ghost btn-sm" %>
-  <%= button_to ai_song_research_admin_anime_path(@anime),
+  <%= button_to enqueue_crawl_request_admin_anime_path(@anime),
         method: :post,
-        class: "btn btn-accent btn-sm",
-        data: { turbo_confirm: "「#{@anime.title}」の楽曲を AI で取り込みます。よろしいですか？" } do %>
-    🤖 AI で楽曲取り込み
+        class: "btn btn-outline btn-sm" do %>
+    📥 クロールキューへ追加
   <% end %>
 </div>
 

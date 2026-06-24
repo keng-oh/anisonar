@@ -2,17 +2,7 @@
 
 <div class="flex items-center justify-between mb-6">
   <h1 class="text-2xl font-bold">アニメ一覧</h1>
-  <div class="flex items-center gap-3">
-    <span class="badge badge-outline"><%= @animes.count %> 件</span>
-    <%= form_with url: bulk_cover_image_resolve_admin_animes_path, method: :post, class: "flex items-center gap-2" do |f| %>
-      <%= f.select :limit, [["10件", 10], ["20件", 20], ["50件", 50]],
-            { selected: 20 },
-            class: "select select-bordered select-sm" %>
-      <%= f.submit "画像未取得を一括解決",
-            class: "btn btn-secondary btn-sm",
-            data: { turbo_confirm: "画像未取得のアニメをAniListから検索します。よろしいですか？" } %>
-    <% end %>
-  </div>
+  <span class="badge badge-outline"><%= @animes.count %> 件</span>
 </div>
 
 <%= form_with url: admin_animes_path, method: :get, class: "mb-4 flex flex-wrap gap-2 items-end" do |f| %>
@@ -33,7 +23,7 @@
 
   <%= f.select :sort,
         [["シーズン新しい順", "season"], ["人気順", "popularity"], ["タイトル順", "title"]],
-        { selected: params[:sort] || "season" },
+        { selected: params[:sort] || "popularity" },
         class: "select select-bordered" %>
 
   <%= f.submit "絞り込み", class: "btn btn-primary" %>

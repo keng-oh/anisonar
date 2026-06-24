@@ -1,0 +1,19 @@
+<% content_for :title, "画像一括取得 | 管理画面" %>
+
+<div class="max-w-xl">
+  <h1 class="text-2xl font-bold mb-6">画像一括取得</h1>
+
+  <div class="card bg-base-100 shadow-sm">
+    <div class="card-body">
+      <p class="text-sm text-base-content/60 mb-2">カバー画像が未取得のアニメをAniListから検索します。</p>
+      <%= form_with url: bulk_cover_image_resolve_admin_animes_path, method: :post, class: "flex items-center gap-2" do |f| %>
+        <%= f.select :limit, [["10件", 10], ["20件", 20], ["50件", 50]],
+              { selected: 20 },
+              class: "select select-bordered select-sm" %>
+        <%= f.submit "画像未取得を一括解決",
+              class: "btn btn-secondary btn-sm",
+              data: { turbo_confirm: "画像未取得のアニメをAniListから検索します。よろしいですか？" } %>
+      <% end %>
+    </div>
+  </div>
+</div>

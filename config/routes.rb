@@ -9,26 +9,34 @@ Rails.application.routes.draw do
   resources :anime_series, only: [ :show ]
 
   namespace :admin do
-    root to: "animes#index"
+    root to: "dashboard#index"
     resources :animes, only: [ :index, :edit, :update ] do
       collection do
-        post :bulk_ai_song_research
         post :bulk_cover_image_resolve
       end
       member do
-        post :ai_song_research
+        post :enqueue_crawl_request
       end
     end
     resources :songs, only: [ :index, :new, :create, :edit, :update ] do
       collection do
         post :bulk_spotify_resolve
+        get :all
       end
       member do
         patch :approve
         patch :reject
       end
     end
-    resource :annict_sync, only: [ :new, :create ]
+    resources :integrations, only: [] do
+      collection do
+        get :cover_images
+        get :spotify
+        get :crawl_requests
+        get :annict_sync
+        post "annict_sync", to: "integrations#create_annict_sync", as: :create_annict_sync
+      end
+    end
   end
 
   namespace :api do
@@ -36,6 +44,14 @@ Rails.application.routes.draw do
       resources :artists,      only: [ :index ]
       resources :animes,       only: [ :index ]
       resources :anime_series, only: [ :index ]
+    end
+
+    namespace :n8n do
+      resources :crawl_requests, only: [ :index, :update ] do
+        member do
+          post :songs
+        end
+      end
     end
   end
 

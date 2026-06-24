@@ -4,6 +4,13 @@ module Admin
       @songs = Song.pending_review.includes(:artist, :animes).order(created_at: :asc)
     end
 
+    def all
+      songs = Song.includes(:artist, anime_songs: :anime)
+      songs = songs.search(params[:q]) if params[:q].present?
+      songs = songs.where(status: params[:status]) if params[:status].present?
+      @songs = songs.order(sort_order)
+    end
+
     def new
       @song = Song.new
     end
@@ -58,10 +65,21 @@ module Admin
                   .where(platform_links: { id: nil })
                   .limit(limit)
       songs.each { |song| SpotifyTrackResolveJob.perform_later(song.id) }
-      redirect_to admin_songs_path, notice: "#{songs.size} 件のSpotify検索を開始しました"
+      redirect_to spotify_admin_integrations_path, notice: "#{songs.size} 件のSpotify検索を開始しました"
     end
 
     private
+
+      SORT_OPTIONS = {
+        "newest"  => { created_at: :desc },
+        "oldest"  => { created_at: :asc },
+        "title"   => { title: :asc },
+        "approve" => { approve_count: :desc }
+      }.freeze
+
+      def sort_order
+        SORT_OPTIONS.fetch(params[:sort], SORT_OPTIONS["newest"])
+      end
 
       def song_params
         params.expect(song: [ :title, :status, :notes ])

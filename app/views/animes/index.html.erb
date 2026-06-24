@@ -1,66 +1,208 @@
-<% content_for :title, "アニメ一覧 | Anisonar" %>
+<% if @search_results %>
+  <% content_for :title, "検索結果 | Anisonar" %>
 
-<div class="hero bg-gradient-to-br from-primary/20 to-secondary/20 rounded-2xl mb-10 py-12 px-4">
-  <div class="hero-content text-center w-full">
-    <div class="w-full max-w-2xl">
-      <h1 class="text-3xl font-bold mb-1">🎵 Anisonar</h1>
-      <p class="text-base-content/60 mb-6">あのアニソンに出会える場所</p>
+  <div class="hero bg-linear-to-br from-primary/20 to-secondary/20 rounded-2xl mb-10 py-12 px-4">
+    <div class="hero-content text-center w-full">
+      <div class="w-full max-w-2xl">
+        <h1 class="text-3xl font-bold mb-1">🎵 Anisonar</h1>
+        <p class="text-base-content/60 mb-6">あのアニソンに出会える場所</p>
 
-      <%= form_with url: animes_path, method: :get, class: "flex flex-wrap gap-2 justify-center" do |f| %>
-        <label class="input input-bordered input-lg flex items-center gap-2 flex-1 min-w-64 max-w-md bg-base-100">
-          <svg class="h-5 w-5 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
-          </svg>
-          <%= f.text_field :q, value: params[:q], placeholder: "アニメタイトルで検索", class: "grow" %>
-        </label>
+        <%= form_with url: animes_path, method: :get, class: "flex flex-wrap gap-2 justify-center" do |f| %>
+          <label class="input input-bordered input-lg flex items-center gap-2 flex-1 min-w-64 max-w-md bg-base-100">
+            <svg class="h-5 w-5 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+            </svg>
+            <%= f.text_field :q, value: params[:q], placeholder: "アニメタイトルで検索", class: "grow" %>
+          </label>
 
-        <%= f.select :season,
-          options_for_select([["全シーズン", ""]] + @seasons.map { |s| [season_label(s), s] }, params[:season]),
-          {}, class: "select select-bordered select-lg bg-base-100" %>
+          <%= f.select :season,
+            options_for_select([ [ "全シーズン", "" ] ] + @seasons.map { |s| [ season_label(s), s ] }, params[:season]),
+            {}, class: "select select-bordered select-lg bg-base-100" %>
 
-        <%= f.submit "検索", class: "btn btn-primary btn-lg" %>
-        <% if params[:q].present? || params[:season].present? %>
+          <%= f.submit "検索", class: "btn btn-primary btn-lg" %>
           <%= link_to "クリア", animes_path, class: "btn btn-ghost btn-lg" %>
         <% end %>
+      </div>
+    </div>
+  </div>
+
+  <% if @search_results.empty? %>
+    <div class="hero py-20">
+      <div class="hero-content text-center">
+        <div>
+          <p class="text-5xl mb-4">🔍</p>
+          <p class="text-lg text-base-content/60">アニメが見つかりませんでした</p>
+        </div>
+      </div>
+    </div>
+  <% else %>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+      <% @search_results.each do |anime| %>
+        <%= render "anime_card", anime: anime %>
       <% end %>
     </div>
-  </div>
-</div>
+  <% end %>
 
-<% if @latest_animes.empty? && @series_groups.empty? && @standalone_animes.empty? %>
-  <div class="hero py-20">
-    <div class="hero-content text-center">
-      <div>
-        <p class="text-5xl mb-4">🔍</p>
-        <p class="text-lg text-base-content/60">アニメが見つかりませんでした</p>
-      </div>
-    </div>
-  </div>
 <% else %>
-  <% if @latest_animes.any? %>
-    <section class="mb-10">
-      <h2 class="text-xl font-bold mb-4">最新のアニメ楽曲</h2>
-      <div class="flex gap-4 overflow-x-auto pb-2">
-        <% @latest_animes.each do |anime| %>
-          <div class="w-36 shrink-0">
-            <%= render "anime_card", anime: anime %>
-          </div>
-        <% end %>
+  <% content_for :title, "Anisonar | あのアニソンに出会える場所" %>
+  <% content_for :full_bleed, true %>
+  <% content_for :head do %>
+    <style>
+      @keyframes marquee-left  { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+      @keyframes marquee-right { 0% { transform: translateX(-50%); } 100% { transform: translateX(0); } }
+      .anim-left  { animation: marquee-left  52s linear infinite; }
+      .anim-right { animation: marquee-right 44s linear infinite; }
+      .anim-left-slow { animation: marquee-left 72s linear infinite; }
+      .anime-card-hover { transition: transform 0.2s; }
+      .anime-card-hover:hover { transform: translateY(-4px); }
+      .rank-row:hover { background: var(--color-base-300); }
+    </style>
+  <% end %>
+
+  <!-- HERO -->
+  <section class="relative bg-base-300 overflow-hidden h-[420px] sm:h-[460px] lg:h-[520px]">
+    <% if @hero_row1.present? %>
+      <div class="absolute inset-0 flex flex-col gap-2.5 py-3.5 pointer-events-none select-none">
+        <div class="anim-left flex gap-2.5 w-max shrink-0">
+          <% @hero_row1.each do |anime| %>
+            <div class="shrink-0 rounded-lg overflow-hidden opacity-70" style="width:116px; height:164px;">
+              <img src="<%= anime.cover_image_url %>" alt="<%= anime.title %>" class="w-full h-full object-cover">
+            </div>
+          <% end %>
+        </div>
+        <div class="anim-right flex gap-2.5 w-max shrink-0">
+          <% @hero_row2.each do |anime| %>
+            <div class="shrink-0 rounded-lg overflow-hidden opacity-60" style="width:116px; height:164px;">
+              <img src="<%= anime.cover_image_url %>" alt="<%= anime.title %>" class="w-full h-full object-cover">
+            </div>
+          <% end %>
+        </div>
+        <div class="anim-left-slow flex gap-2.5 w-max shrink-0">
+          <% @hero_row3.each do |anime| %>
+            <div class="shrink-0 rounded-lg overflow-hidden opacity-40" style="width:116px; height:80px;">
+              <img src="<%= anime.cover_image_url %>" alt="<%= anime.title %>" class="w-full h-full object-cover">
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <div class="absolute inset-0" style="background:linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.65) 45%, var(--color-base-100) 100%);"></div>
+    <div class="absolute inset-0" style="background:radial-gradient(ellipse 70% 50% at 50% 70%, rgba(168,85,247,0.18), transparent);"></div>
+
+    <div class="relative h-full flex flex-col items-center justify-center gap-7 px-6 text-center">
+      <div>
+        <p class="text-primary text-xs font-bold tracking-widest uppercase mb-3" style="letter-spacing:0.2em;">Anime Song Database</p>
+        <h1 class="font-bold mb-3" style="font-size:clamp(2rem,5vw,3.5rem); letter-spacing:-0.04em; line-height:1.1;">
+          アニメソングを、<br>もっと深く。
+        </h1>
+        <p class="opacity-50 text-sm">
+          <%= @song_count %>曲 &nbsp;·&nbsp; <%= @anime_count %>作品 &nbsp;·&nbsp; Spotify連携対応
+        </p>
+      </div>
+
+      <%= form_with url: root_path, method: :get, class: "flex gap-2 w-full max-w-[560px]" do |f| %>
+        <label class="input input-bordered flex items-center gap-3 flex-1 bg-base-100/10">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" class="opacity-40 shrink-0">
+            <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+            <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <%= f.text_field :q, placeholder: "アニメ名・楽曲名・アーティスト名...", class: "grow text-sm" %>
+        </label>
+        <%= f.submit "検索", class: "btn btn-primary gap-2 px-4 sm:px-6 shrink-0" %>
+      <% end %>
+
+      <% if @quick_tags.present? %>
+        <div class="flex flex-wrap justify-center gap-2" style="max-width:480px;">
+          <% @quick_tags.each do |title| %>
+            <%= link_to title, animes_path(q: title), class: "badge badge-ghost badge-sm hover:badge-primary transition-colors" %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </section>
+
+  <!-- AIRING -->
+  <% if @airing_animes.present? %>
+    <section class="py-10 bg-base-100">
+      <div class="px-6 max-w-6xl mx-auto">
+        <div class="mb-5">
+          <h2 class="text-xl font-bold tracking-tight">今季放送中のアニメ</h2>
+          <p class="text-xs opacity-40 mt-1">
+            <% if @current_season.present? %><%= season_label(@current_season) %>クール · <% end %><%= @airing_animes.size %>作品
+          </p>
+        </div>
+
+        <div class="flex gap-4 overflow-x-auto pb-3">
+          <% @airing_animes.each do |anime| %>
+            <%= link_to anime_path(anime), class: "anime-card-hover shrink-0", style: "width:144px;" do %>
+              <div class="rounded-xl bg-base-300 overflow-hidden relative" style="width:144px; height:204px;">
+                <% if anime.cover_image_url.present? %>
+                  <img src="<%= anime.cover_image_url %>" alt="<%= anime.title %>" class="w-full h-full object-cover">
+                <% else %>
+                  <div class="w-full h-full flex items-center justify-center text-4xl">🎌</div>
+                <% end %>
+                <div class="absolute inset-0" style="background:linear-gradient(to top, rgba(0,0,0,0.72) 40%, transparent 100%);"></div>
+                <div class="absolute bottom-0 left-0 right-0 p-2.5">
+                  <span class="text-[10px] font-bold text-white block leading-tight" style="text-shadow:0 1px 3px rgba(0,0,0,0.8);"><%= anime.title %></span>
+                </div>
+                <span class="badge badge-sm absolute top-2 left-2 bg-black/50 text-white border-none text-[9px]"><%= anime.media_type %></span>
+              </div>
+              <div class="mt-2">
+                <p class="text-xs font-semibold truncate"><%= anime.title %></p>
+                <p class="text-xs opacity-40 mt-0.5"><%= anime.songs.merge(Song.approved).count %>曲収録</p>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
       </div>
     </section>
   <% end %>
 
-  <% if @series_groups.any? || @standalone_animes.any? %>
-    <section>
-      <h2 class="text-xl font-bold mb-4">人気のアニメ楽曲</h2>
-      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        <% @series_groups.each do |series, animes| %>
-          <%= render "series_card", series: series, animes: animes %>
-        <% end %>
-        <% @standalone_animes.each do |anime| %>
-          <%= render "anime_card", anime: anime %>
-        <% end %>
+  <!-- RANKINGS -->
+  <% if @rankings.present? %>
+    <section class="py-10 bg-base-200">
+      <div class="px-6 max-w-6xl mx-auto">
+        <div class="flex items-end justify-between mb-5">
+          <div>
+            <h2 class="text-xl font-bold tracking-tight">人気楽曲ランキング</h2>
+            <p class="text-xs opacity-40 mt-1">コミュニティの承認数をもとに集計</p>
+          </div>
+        </div>
+
+        <% rank_colors = { 0 => "#eab308", 1 => "#9ca3af", 2 => "#b45309" } %>
+        <div class="grid grid-cols-1 gap-1.5 lg:grid-cols-2">
+          <% @rankings.each_with_index do |song, i| %>
+            <% anime = song.anime_songs.first&.anime %>
+            <div class="rank-row flex items-center gap-3 px-4 py-3 rounded-xl bg-base-100">
+              <div class="w-6 text-center text-base font-extrabold shrink-0 <%= "opacity-40" unless rank_colors[i] %>" style="<%= "color:#{rank_colors[i]};" if rank_colors[i] %>"><%= i + 1 %></div>
+              <div class="w-10 h-10 rounded-lg shrink-0 bg-base-300 overflow-hidden">
+                <% if anime&.cover_image_url.present? %>
+                  <img src="<%= anime.cover_image_url %>" alt="<%= anime.title %>" class="w-full h-full object-cover">
+                <% end %>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="font-semibold text-sm truncate"><%= song.title %></p>
+                <p class="text-xs opacity-40 truncate mt-0.5"><%= song.artist.name %> &nbsp;·&nbsp; <%= anime&.title || "-" %></p>
+              </div>
+              <div class="flex items-center gap-2 shrink-0">
+                <span class="badge badge-ghost badge-sm text-xs"><%= song_type_label(song.anime_songs.first&.song_type) %></span>
+                <% if song.spotify_url %>
+                  <%= link_to song.spotify_url, target: "_blank", rel: "noopener", class: "btn btn-circle btn-xs btn-success" do %>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+                      <polygon points="5 3 19 12 5 21 5 3"/>
+                    </svg>
+                  <% end %>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
       </div>
     </section>
   <% end %>
+
+  <footer class="footer footer-center py-6 bg-base-100 border-t border-base-300">
+    <p class="text-xs opacity-30">© 2026 Anisonar — アニメソングデータベース</p>
+  </footer>
 <% end %>
