@@ -2,7 +2,7 @@ name: Deploy
 
 on:
   push:
-    branches: [main]
+    tags: ["v*.*.*"]
 
 permissions:
   contents: read
@@ -33,6 +33,7 @@ jobs:
           push: true
           tags: |
             ${{ steps.image.outputs.image }}
+            ghcr.io/${{ github.repository }}:${{ github.ref_name }}
             ghcr.io/${{ github.repository }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
