@@ -16,14 +16,10 @@ default: &default
   adapter: postgresql
   encoding: unicode
   max_connections: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  <%
-    db_url = ENV.fetch("DATABASE_URL", "postgresql://localhost")
-    uri = URI.parse(db_url)
-  %>
-  host: <%= uri.host %>
-  port: <%= uri.port || 5432 %>
-  username: <%= uri.user %>
-  password: <%= uri.password %>
+  host: <%= ENV.fetch("DB_HOST", "db") %>
+  port: <%= ENV.fetch("DB_PORT", 5432) %>
+  username: anisonar
+  password: <%= ENV["DB_PASSWORD"] %>
 
 
 development:
@@ -94,8 +90,6 @@ production:
   primary: &primary_production
     <<: *default
     database: anisonar_production
-    username: anisonar
-    password: <%= ENV["ANISONAR_DATABASE_PASSWORD"] %>
   cache:
     <<: *primary_production
     database: anisonar_production_cache
