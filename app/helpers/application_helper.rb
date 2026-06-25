@@ -4,7 +4,7 @@ module ApplicationHelper
   end
 
   def sidebar_link_class(active)
-    ["gap-2.5", (active ? "active font-medium" : nil)].compact.join(" ")
+    [ "gap-2.5", (active ? "active font-medium" : nil) ].compact.join(" ")
   end
 
   SONG_TYPE_BADGE_CLASSES = { "op" => "badge-primary", "ed" => "badge-secondary", "insert" => "badge-accent", "image" => "badge-ghost" }.freeze

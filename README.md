@@ -43,8 +43,8 @@ docker compose up
 # サーバー起動
 docker compose up
 
-# テスト実行
-bundle exec rspec
+# テスト実行（RAILS_ENV未指定だとdevelopmentで動いてしまうので明示する）
+RAILS_ENV=test bundle exec rspec
 
 # Linter
 bundle exec rubocop
