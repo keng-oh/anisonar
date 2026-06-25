@@ -23,4 +23,10 @@ class User < ApplicationRecord
   def admin?
     role == "admin"
   end
+
+  ROLE_LABELS = { "general" => "一般", "reviewer" => "レビュアー", "admin" => "管理者", "ai" => "AI" }.freeze
+
+  def role_label
+    ROLE_LABELS.fetch(role, role)
+  end
 end

@@ -1,42 +1,56 @@
-<h2>Edit <%= resource_name.to_s.humanize %></h2>
+<% content_for :title, "アカウント編集 | Anisonar" %>
 
-<%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put }) do |f| %>
-  <%= render "devise/shared/error_messages", resource: resource %>
+<div class="flex justify-center py-12">
+  <div class="card bg-base-100 shadow-sm w-full max-w-sm">
+    <div class="card-body gap-4">
+      <h1 class="card-title text-2xl justify-center">アカウント編集</h1>
 
-  <div class="field">
-    <p><%= f.label :email %></p>
-    <p><%= f.email_field :email, autofocus: true, autocomplete: "email" %></p>
+      <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put, class: "flex flex-col gap-4" }) do |f| %>
+        <%= render "devise/shared/error_messages", resource: resource %>
+
+        <div class="form-control">
+          <label class="label"><span class="label-text">メールアドレス</span></label>
+          <%= f.email_field :email, autofocus: true, autocomplete: "email",
+            class: "input input-bordered w-full" %>
+        </div>
+
+        <% if devise_mapping.confirmable? && resource.pending_reconfirmation? %>
+          <p class="text-sm text-base-content/60">確認待ちのメールアドレス: <%= resource.unconfirmed_email %></p>
+        <% end %>
+
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">新しいパスワード</span>
+            <span class="label-text-alt text-base-content/50">変更しない場合は空欄</span>
+          </label>
+          <%= f.password_field :password, autocomplete: "new-password",
+            class: "input input-bordered w-full" %>
+          <% if @minimum_password_length %>
+            <p class="text-xs text-base-content/50 mt-1"><%= @minimum_password_length %>文字以上</p>
+          <% end %>
+        </div>
+
+        <div class="form-control">
+          <label class="label"><span class="label-text">新しいパスワード（確認）</span></label>
+          <%= f.password_field :password_confirmation, autocomplete: "new-password",
+            class: "input input-bordered w-full" %>
+        </div>
+
+        <div class="form-control">
+          <label class="label"><span class="label-text">現在のパスワード</span></label>
+          <%= f.password_field :current_password, autocomplete: "current-password",
+            class: "input input-bordered w-full" %>
+        </div>
+
+        <%= f.submit "更新する", class: "btn btn-primary w-full mt-2" %>
+      <% end %>
+
+      <div class="divider text-xs text-base-content/40">アカウント削除</div>
+      <%= button_to "アカウントを削除する", registration_path(resource_name),
+        data: { turbo_confirm: "本当にアカウントを削除しますか？" }, method: :delete,
+        class: "btn btn-outline btn-error w-full" %>
+
+      <%= link_to "マイページに戻る", mypage_path, class: "link link-hover text-sm text-center" %>
+    </div>
   </div>
-
-  <% if devise_mapping.confirmable? && resource.pending_reconfirmation? %>
-    <div>Currently waiting confirmation for: <%= resource.unconfirmed_email %></div>
-  <% end %>
-
-  <div class="field">
-    <p><%= f.label :password %> <i>(leave blank if you don't want to change it)</i></p>
-    <p><%= f.password_field :password, autocomplete: "new-password" %></p>
-    <% if @minimum_password_length %>
-      <p><em><%= @minimum_password_length %> characters minimum</em></p>
-    <% end %>
-  </div>
-
-  <div class="field">
-    <p><%= f.label :password_confirmation %></p>
-    <p><%= f.password_field :password_confirmation, autocomplete: "new-password" %></p>
-  </div>
-
-  <div class="field">
-    <p><%= f.label :current_password %> <i>(we need your current password to confirm your changes)</i></p>
-    <p><%= f.password_field :current_password, autocomplete: "current-password" %></p>
-  </div>
-
-  <div class="actions">
-    <%= f.submit "Update" %>
-  </div>
-<% end %>
-
-<h3>Cancel my account</h3>
-
-<div>Unhappy? <%= button_to "Cancel my account", registration_path(resource_name), data: { confirm: "Are you sure?", turbo_confirm: "Are you sure?" }, method: :delete %></div>
-
-<%= link_to "Back", :back %>
+</div>

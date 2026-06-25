@@ -1,0 +1,36 @@
+<% content_for :title, "マイページ | Anisonar" %>
+
+<div class="flex justify-center py-8">
+  <div class="card bg-base-100 shadow-sm w-full max-w-md">
+    <div class="card-body gap-4">
+      <h1 class="card-title text-2xl">マイページ</h1>
+
+      <div class="flex flex-col gap-3">
+        <div class="flex justify-between items-center">
+          <span class="text-sm text-base-content/60">メールアドレス</span>
+          <span class="font-medium"><%= @user.email %></span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-sm text-base-content/60">ロール</span>
+          <span class="badge badge-outline"><%= @user.role_label %></span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-sm text-base-content/60">信頼度（trusted_count）</span>
+          <span class="font-medium"><%= @user.trusted_count %></span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-sm text-base-content/60">レビューの重み</span>
+          <span class="font-medium"><%= @user.review_weight %>票</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-sm text-base-content/60">登録日</span>
+          <span class="font-medium"><%= @user.created_at.strftime("%Y年%m月%d日") %></span>
+        </div>
+      </div>
+
+      <div class="divider text-xs text-base-content/40">アカウント設定</div>
+
+      <%= link_to "メールアドレス・パスワードを変更", edit_user_registration_path, class: "btn btn-outline w-full" %>
+    </div>
+  </div>
+</div>

@@ -8,6 +8,8 @@ Rails.application.routes.draw do
   resources :animes, only: [ :index, :show ]
   resources :anime_series, only: [ :show ]
 
+  get "mypage" => "mypage#show", as: :mypage
+
   namespace :admin do
     root to: "dashboard#index"
     resources :animes, only: [ :index, :edit, :update ] do

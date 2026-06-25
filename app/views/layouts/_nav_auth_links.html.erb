@@ -1,5 +1,6 @@
 <% btn_extra = mobile ? "justify-start w-full" : "" %>
 <% if user_signed_in? %>
+  <%= link_to "マイページ", mypage_path, class: "btn btn-ghost btn-sm #{btn_extra}" %>
   <% if current_user.admin? %>
     <%= link_to "管理画面", admin_root_path, class: "btn btn-ghost btn-sm #{btn_extra}" %>
   <% end %>
