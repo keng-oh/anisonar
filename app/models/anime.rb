@@ -11,7 +11,7 @@ class Anime < ApplicationRecord
   validates :media_type, presence: true
   validates :annict_id, uniqueness: { allow_nil: true }
 
-  SEASON_NAME_LABELS = { "spring" => "春", "summer" => "夏", "fall" => "秋", "winter" => "冬" }.freeze
+  SEASON_NAME_LABELS = { "spring" => "春", "summer" => "夏", "autumn" => "秋", "winter" => "冬" }.freeze
 
   # "2025-spring" => "2025年春", "2025-" => "2025年放送"
   def self.season_label(season)

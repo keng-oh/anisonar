@@ -12,6 +12,7 @@ gem "jbuilder"
 
 # Background jobs
 gem "sidekiq", "~> 7.3", ">= 7.3.10"
+gem "sidekiq-cron"
 gem "redis", "~> 5.0"
 
 # Cache / Cable (DB-backed)
@@ -27,6 +28,9 @@ gem "faraday-retry"
 
 # Auth
 gem "devise"
+
+# メール送信（Resend）
+gem "resend"
 
 # N+1 detection
 gem "bullet", group: :development
