@@ -4,6 +4,7 @@ FactoryBot.define do
     password { "password123" }
     role { :general }
     trusted_count { 0 }
+    confirmed_at { Time.current }
 
     trait :reviewer do
       role { :reviewer }
@@ -15,6 +16,10 @@ FactoryBot.define do
 
     trait :trusted do
       trusted_count { 10 }
+    end
+
+    trait :unconfirmed do
+      confirmed_at { nil }
     end
   end
 end
