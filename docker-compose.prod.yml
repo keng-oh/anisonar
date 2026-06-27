@@ -38,7 +38,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U anisonar']
+      test: ['CMD-SHELL', 'pg_isready -U anisonar -d anisonar_production']
       interval: 5s
       timeout: 5s
       retries: 5
@@ -48,6 +48,19 @@ services:
     restart: unless-stopped
     volumes:
       - redis_data:/data
+
+  # DB管理UI。外部に公開する場合はnginx proxy manager等でBasic認証を必須にすること
+  pgweb:
+    image: sosedoff/pgweb
+    restart: unless-stopped
+    command: --readonly
+    environment:
+      PGWEB_DATABASE_URL: postgres://anisonar:${DB_PASSWORD}@db:5432/anisonar_production?sslmode=disable
+    ports:
+      - '8081:8081'
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
   postgres_data:
