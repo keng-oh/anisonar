@@ -46,6 +46,14 @@
           {}, class: "select select-bordered" %>
       </div>
 
+      <div class="form-control">
+        <%= f.label :cover_image_url, "カバー画像URL", class: "label" %>
+        <%= f.text_field :cover_image_url, class: "input input-bordered" %>
+        <% if @anime.cover_image_url.present? %>
+          <img src="<%= @anime.cover_image_url %>" class="mt-2 h-32 object-cover rounded" />
+        <% end %>
+      </div>
+
       <div class="card-actions justify-end mt-2">
         <%= link_to "キャンセル", admin_animes_path, class: "btn btn-ghost" %>
         <%= f.submit "保存", class: "btn btn-primary" %>

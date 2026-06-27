@@ -7,3 +7,8 @@ annict_backfill:
   class: AnnictBackfillJob
   cron: "0 * * * *"
   queue: annict_sync
+
+cover_image_bulk_resolve:
+  class: CoverImageBulkResolveJob
+  cron: "30 6 * * *"
+  queue: default

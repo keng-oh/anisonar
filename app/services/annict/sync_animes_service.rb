@@ -95,9 +95,6 @@ module Annict
         anime_series = sync_series(series_node)
 
         Anime.find_or_initialize_by(annict_id: node["annictId"].to_s).tap do |anime|
-          # cover_image_url は CoverImageResolveJob 等で別途補完されるため、初回作成時のみ設定し以後は上書きしない
-          anime.cover_image_url ||= node.dig("image", "recommendedImageUrl") if anime.new_record?
-
           anime.assign_attributes(
             title:             node["title"],
             title_en:          node["titleEn"].presence,

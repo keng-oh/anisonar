@@ -1,9 +1,9 @@
 <% content_for :title, "画像一括取得 | 管理画面" %>
 
-<div class="max-w-xl">
+<div class="max-w-3xl">
   <h1 class="text-2xl font-bold mb-6">画像一括取得</h1>
 
-  <div class="card bg-base-100 shadow-sm">
+  <div class="card bg-base-100 shadow-sm mb-6">
     <div class="card-body">
       <p class="text-sm text-base-content/60 mb-2">カバー画像が未取得のアニメをAniListから検索します。</p>
       <%= form_with url: bulk_cover_image_resolve_admin_animes_path, method: :post, class: "flex items-center gap-2" do |f| %>
@@ -13,6 +13,39 @@
         <%= f.submit "画像未取得を一括解決",
               class: "btn btn-secondary btn-sm",
               data: { turbo_confirm: "画像未取得のアニメをAniListから検索します。よろしいですか？" } %>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="card bg-base-100 shadow-sm">
+    <div class="card-body">
+      <h2 class="font-semibold mb-2">未解決のアニメ（<%= @unresolved_animes.size %>件）</h2>
+      <p class="text-sm text-base-content/60 mb-2">
+        海外製アニメなどAniListに存在しない作品は自動取得できないため、編集画面から手動でURLを入力してください。
+      </p>
+      <% if @unresolved_animes.any? %>
+        <div class="overflow-x-auto max-h-[32rem] overflow-y-auto">
+          <table class="table table-zebra table-sm">
+            <thead>
+              <tr>
+                <th>アニメ</th>
+                <th>視聴者数</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @unresolved_animes.each do |anime| %>
+                <tr>
+                  <td><%= anime.title %></td>
+                  <td><%= number_with_delimiter(anime.watchers_count) %></td>
+                  <td><%= link_to "編集", edit_admin_anime_path(anime), class: "link link-primary text-xs" %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <p class="text-sm text-base-content/50">未解決のアニメはありません</p>
       <% end %>
     </div>
   </div>

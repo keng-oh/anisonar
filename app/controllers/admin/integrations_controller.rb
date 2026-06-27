@@ -1,6 +1,9 @@
 module Admin
   class IntegrationsController < BaseController
     def cover_images
+      @unresolved_animes = Anime.where(cover_image_url: [ nil, "" ])
+                                .order(watchers_count: :desc)
+                                .limit(100)
     end
 
     def spotify

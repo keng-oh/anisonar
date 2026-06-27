@@ -1,0 +1,22 @@
+name: Run Rake Task
+
+on:
+  workflow_dispatch:
+    inputs:
+      rake_task:
+        description: "本番のwebコンテナで実行する rake タスク（例: cover_images:revalidate）"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  rake_task:
+    runs-on: [self-hosted, anisonar]
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Run rake task on the running web container
+        run: |
+          docker compose -f docker-compose.prod.yml exec -T web bin/rails "${{ inputs.rake_task }}"

@@ -44,7 +44,7 @@ module Admin
     private
 
       def anime_params
-        params.expect(anime: [ :title, :title_en, :media_type, :status, :season ])
+        params.expect(anime: [ :title, :title_en, :media_type, :status, :season, :cover_image_url ])
       end
 
       SORT_OPTIONS = {
