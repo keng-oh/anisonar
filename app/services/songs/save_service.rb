@@ -39,6 +39,8 @@ module Songs
       def resolve_artist
         if @artist_id == "new"
           artist = Artist.new(@new_artist_params)
+          artist.created_by_user ||= @user
+          artist.updated_by_user = @user
           unless artist.save
             artist.errors.each { |e| @song.errors.add(:base, "アーティスト #{e.full_message}") }
             raise ActiveRecord::Rollback

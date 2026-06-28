@@ -21,20 +21,29 @@ module Spotify
     # query 例: 'track:"曲名" artist:"アーティスト名"'
     # @return [Array<Hash>] トラック情報の配列（最大 limit 件）
     def search_track(query, limit: 5)
-      raise Error, "SPOTIFY_CLIENT_ID/SECRET is not set" if @client_id.blank? || @client_secret.blank?
+      search(type: "track", query: query, limit: limit)
+    end
 
-      res = @conn.get("#{API_URL}/search") do |req|
-        req.headers["Authorization"] = "Bearer #{access_token}"
-        req.params["q"]     = query
-        req.params["type"]  = "track"
-        req.params["limit"] = limit
-      end
-
-      raise Error, "HTTP #{res.status}: #{res.body.inspect}" unless res.success?
-      res.body.dig("tracks", "items") || []
+    # @return [Array<Hash>] アーティスト情報の配列（最大 limit 件）
+    def search_artist(query, limit: 5)
+      search(type: "artist", query: query, limit: limit)
     end
 
     private
+
+      def search(type:, query:, limit:)
+        raise Error, "SPOTIFY_CLIENT_ID/SECRET is not set" if @client_id.blank? || @client_secret.blank?
+
+        res = @conn.get("#{API_URL}/search") do |req|
+          req.headers["Authorization"] = "Bearer #{access_token}"
+          req.params["q"]     = query
+          req.params["type"]  = type
+          req.params["limit"] = limit
+        end
+
+        raise Error, "HTTP #{res.status}: #{res.body.inspect}" unless res.success?
+        res.body.dig("#{type}s", "items") || []
+      end
 
       def access_token
         Rails.cache.fetch(TOKEN_CACHE_KEY, expires_in: 50.minutes) { fetch_token }

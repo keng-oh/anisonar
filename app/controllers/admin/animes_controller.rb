@@ -5,7 +5,9 @@ module Admin
       animes = animes.search(params[:q])               if params[:q].present?
       animes = animes.where(media_type: params[:media_type]) if params[:media_type].present?
       animes = animes.where(status: params[:status])   if params[:status].present?
-      @animes = animes.order(sort_order)
+      animes = animes.order(sort_order)
+
+      @pagy, @animes = pagy(:offset, animes, limit: 20)
     end
 
     def edit
@@ -23,12 +25,11 @@ module Admin
 
     def enqueue_crawl_request
       anime = Anime.find(params[:id])
-      url = anime.wikipedia_url.presence || anime.official_site_url
-      if url.blank?
+      if anime.wikipedia_url.blank? && anime.official_site_url.blank?
         redirect_to edit_admin_anime_path(anime), alert: "クロール対象URL（Wikipedia/公式サイト）が未設定です"
         return
       end
-      CrawlRequest.create!(anime: anime, url: url, status: :pending)
+      CrawlRequest.create!(anime: anime, status: :pending)
       redirect_to edit_admin_anime_path(anime), notice: "「#{anime.title}」をクロールキューへ追加しました"
     end
 

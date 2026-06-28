@@ -13,7 +13,6 @@
           <thead>
             <tr>
               <th>アニメ</th>
-              <th>URL</th>
               <th>ステータス</th>
               <th>Difyドキュメント</th>
               <th>作成日時</th>
@@ -23,7 +22,6 @@
             <% @crawl_requests.each do |cr| %>
               <tr>
                 <td><%= cr.anime.title %></td>
-                <td class="text-xs max-w-xs truncate"><%= cr.url %></td>
                 <td><span class="badge badge-sm"><%= cr.status %></span></td>
                 <td class="text-xs"><%= cr.dify_document_id %></td>
                 <td class="text-xs"><%= cr.created_at.strftime("%Y-%m-%d %H:%M") %></td>

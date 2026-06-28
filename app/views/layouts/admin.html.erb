@@ -26,13 +26,6 @@
           </div>
 
           <div class="flex items-center gap-2 ml-auto">
-            <%= link_to crawl_requests_admin_integrations_path, class: "btn btn-primary btn-sm gap-1.5" do %>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-              </svg>
-              AI収集実行
-            <% end %>
-
             <!-- Theme toggle -->
             <button type="button" class="btn btn-ghost btn-circle btn-sm" title="テーマ切替"
                     @click="theme = (theme === 'night' ? 'light' : 'night')">
@@ -187,6 +180,7 @@
             <li><%= link_to "Sidekiq", "/sidekiq", target: "_blank", class: "gap-2.5" %></li>
             <% if Rails.env.development? %>
               <li><%= link_to "Mailhog", "http://localhost:8025", target: "_blank", class: "gap-2.5" %></li>
+              <li><%= link_to "pgweb", "http://localhost:8081", target: "_blank", class: "gap-2.5" %></li>
             <% end %>
           </ul>
 

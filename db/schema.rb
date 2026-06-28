@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_27_131039) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_27_174342) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -76,11 +76,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_27_131039) do
     t.string "name", null: false
     t.string "name_kana"
     t.integer "reject_count", default: 0, null: false
+    t.string "spotify_artist_id"
     t.integer "status", default: 0, null: false
     t.datetime "updated_at", null: false
     t.bigint "updated_by_user_id"
     t.index ["anime_id"], name: "index_artists_on_anime_id"
     t.index ["created_by_user_id"], name: "index_artists_on_created_by_user_id"
+    t.index ["spotify_artist_id"], name: "index_artists_on_spotify_artist_id", unique: true
     t.index ["updated_by_user_id"], name: "index_artists_on_updated_by_user_id"
   end
 
@@ -91,7 +93,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_27_131039) do
     t.text "error_message"
     t.string "status", default: "pending", null: false
     t.datetime "updated_at", null: false
-    t.string "url", null: false
     t.index ["anime_id"], name: "index_crawl_requests_on_anime_id"
     t.index ["status"], name: "index_crawl_requests_on_status"
   end

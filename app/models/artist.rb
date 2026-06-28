@@ -13,6 +13,7 @@ class Artist < ApplicationRecord
   validates :name, presence: true
   validates :artist_type, presence: true
   validates :anime_id, presence: true, if: :character?
+  validates :spotify_artist_id, uniqueness: { allow_nil: true }
 
   def approve!; update!(status: :approved); end
   def reject!;  update!(status: :rejected);  end

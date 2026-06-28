@@ -1,5 +1,7 @@
 module Admin
   class BaseController < ApplicationController
+    include Pagy::Method
+
     before_action :authenticate_user!
     before_action :require_admin!
     before_action :set_pending_review_count

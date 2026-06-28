@@ -1,22 +1,24 @@
 module Api
   module N8n
     class CrawlRequestsController < BaseController
+      # n8nワークフローがクロール対象を取得するためのポーリング用エンドポイント
       def index
         status = params[:status].presence || "pending"
         limit = (params[:limit].presence || 5).to_i.clamp(1, 50)
 
-        crawl_requests = CrawlRequest.where(status: status).order(:created_at).limit(limit)
+        crawl_requests = CrawlRequest.includes(:anime).where(status: status).order(:created_at).limit(limit)
 
         render json: crawl_requests.map { |cr|
           {
             id: cr.id,
-            url: cr.url,
+            urls: [ cr.anime.wikipedia_url, cr.anime.official_site_url ].compact_blank,
             status: cr.status,
-            anime: { id: cr.anime.id, title: cr.anime.title, wikipedia_url: cr.anime.wikipedia_url }
+            anime: { id: cr.anime.id, title: cr.anime.title }
           }
         }
       end
 
+      # n8nがクロール/抽出の進行状況（status・Difyドキュメント連携結果など）を更新する
       def update
         crawl_request = CrawlRequest.find(params[:id])
         if crawl_request.update(crawl_request_params)
@@ -26,6 +28,7 @@ module Api
         end
       end
 
+      # n8nがAIで抽出した楽曲データ（曲名・アーティスト等）を受け取り保存する
       def songs
         crawl_request = CrawlRequest.find(params[:id])
         items = params.expect(items: [ [ :title, :artist_name, :song_type, :source_url ] ])
