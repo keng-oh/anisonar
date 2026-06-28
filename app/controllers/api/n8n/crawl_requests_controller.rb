@@ -31,7 +31,7 @@ module Api
       # n8nがAIで抽出した楽曲データ（曲名・アーティスト等）を受け取り保存する
       def songs
         crawl_request = CrawlRequest.find(params[:id])
-        items = params.expect(items: [ [ :title, :artist_name, :song_type, :source_url ] ])
+        items = params.expect(items: [ [ :title, :artist_name, :song_type ] ])
 
         songs_data = Songs::ArtistResolver.call(items: items, anime: crawl_request.anime)
         result = Songs::BulkSaveService.call(songs_data: songs_data, user: User.ai_bot)

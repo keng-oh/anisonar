@@ -1,11 +1,11 @@
 module Songs
   # AiResearcher の出力（artist_name を含む items）を BulkSaveService 用の形式に変換する。
   #
-  # 入力 item:  { title:, artist_name:, song_type:, source_url: }
+  # 入力 item:  { title:, artist_name:, song_type: }
   # 出力 song_data:
   #   {
   #     title:, status:,
-  #     notes: "[AI] source_url",
+  #     notes: "[AI]",
   #     artist_id: Integer | "new",
   #     new_artist: { name:, artist_type:, status:, spotify_artist_id: } (artist_id == "new" のときのみ),
   #     anime_entries: [{ anime_id:, song_type: }]
@@ -33,7 +33,7 @@ module Songs
         base = {
           title:  item[:title],
           status: :approved,
-          notes:  notes_for(item),
+          notes:  "[AI]",
           anime_entries: [ { anime_id: @anime.id, song_type: item[:song_type] } ],
           series_entries: nil
         }
@@ -90,10 +90,6 @@ module Songs
 
       def normalize(str)
         str.to_s.unicode_normalize(:nfkc).strip.downcase.gsub(/\s+/, " ")
-      end
-
-      def notes_for(item)
-        item[:source_url].present? ? "[AI] #{item[:source_url]}" : "[AI]"
       end
   end
 end

@@ -29,7 +29,7 @@ applyTo: '**/*.rb'
 `insert` / `reject` は ActiveRecord のメソッドと衝突するため prefix が必要:
 
 ```ruby
-enum :song_type, { op: 0, ed: 1, insert: 2, image: 3 }, prefix: :song
+enum :song_type, { op: 0, ed: 1, insert: 2, image: 3, soundtrack: 4, other: 5 }, prefix: :song
 enum :action,    { approve: 0, reject: 1, flag: 2 },     prefix: :review
 ```
 
