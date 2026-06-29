@@ -28,6 +28,7 @@
   <table class="table table-zebra">
     <thead>
       <tr>
+        <th></th>
         <th>タイトル</th>
         <th>アーティスト</th>
         <th>アニメ・種別</th>
@@ -37,19 +38,25 @@
     </thead>
     <tbody>
       <% @songs.each do |song| %>
+        <% spotify_link = song.platform_links.find(&:spotify?) %>
         <tr>
-          <td class="font-semibold"><%= song.title %></td>
-          <td class="text-sm"><%= song.artist.name %></td>
+          <td>
+            <% if spotify_link&.album_image_url.present? %>
+              <img src="<%= spotify_link.album_image_url %>" class="w-8 h-8 rounded object-cover">
+            <% end %>
+          </td>
+          <td class="font-semibold max-w-48 truncate"><%= song.title %></td>
+          <td class="text-sm max-w-32 truncate"><%= song.artist.name %></td>
           <td class="text-sm">
             <% song.anime_songs.each do |as| %>
-              <div class="flex items-center gap-1.5 mb-0.5">
+              <div class="flex items-center gap-1.5 mb-0.5 whitespace-nowrap">
                 <span class="badge badge-xs <%= song_type_badge_class(as.song_type) %>"><%= song_type_label(as.song_type) %></span>
-                <span class="truncate"><%= as.anime.title %></span>
+                <span class="truncate max-w-48"><%= as.anime.title %></span>
               </div>
             <% end %>
           </td>
-          <td class="text-sm">
-            <% if song.spotify_link %>
+          <td class="text-sm whitespace-nowrap">
+            <% if spotify_link %>
               <span class="badge badge-success badge-sm">連携済み</span>
             <% else %>
               <span class="badge badge-ghost badge-sm">未連携</span>

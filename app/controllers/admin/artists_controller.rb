@@ -38,6 +38,18 @@ module Admin
       end
     end
 
+    def destroy
+      @artist = Artist.find(params[:id])
+      name = @artist.name
+
+      if @artist.songs.exists?
+        redirect_to edit_admin_artist_path(@artist), alert: "「#{name}」には楽曲が紐づいているため削除できません"
+      else
+        @artist.destroy!
+        redirect_to admin_artists_path, notice: "「#{name}」を削除しました"
+      end
+    end
+
     def spotify_link
       @artist = Artist.find(params[:id])
       attrs = { spotify_artist_id: params[:spotify_artist_id] }

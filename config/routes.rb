@@ -20,7 +20,7 @@ Rails.application.routes.draw do
         post :enqueue_crawl_request
       end
     end
-    resources :songs, only: [ :new, :create, :edit, :update ] do
+    resources :songs, only: [ :new, :create, :edit, :update, :destroy ] do
       collection do
         get :all
       end
@@ -28,7 +28,7 @@ Rails.application.routes.draw do
         post :spotify_link
       end
     end
-    resources :artists, only: [ :index, :new, :create, :edit, :update ] do
+    resources :artists, only: [ :index, :new, :create, :edit, :update, :destroy ] do
       member do
         post :spotify_link
       end

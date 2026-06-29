@@ -7,4 +7,10 @@
   <div class="mt-4">
     <%= render "spotify_link", song: @song %>
   </div>
+
+  <div class="mt-6 flex justify-end">
+    <%= button_to "この楽曲を削除", admin_song_path(@song), method: :delete,
+          class: "btn btn-error btn-outline btn-sm",
+          form: { data: { turbo_confirm: "「#{@song.title}」を削除しますか？この操作は取り消せません" } } %>
+  </div>
 </div>

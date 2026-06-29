@@ -48,4 +48,14 @@
       <% end %>
     </div>
   </div>
+
+  <div class="mt-6 flex justify-end items-center gap-2">
+    <% if @artist.songs.any? %>
+      <p class="text-sm text-base-content/50">紐づく楽曲がある間は削除できません</p>
+    <% else %>
+      <%= button_to "このアーティストを削除", admin_artist_path(@artist), method: :delete,
+            class: "btn btn-error btn-outline btn-sm",
+            form: { data: { turbo_confirm: "「#{@artist.name}」を削除しますか？この操作は取り消せません" } } %>
+    <% end %>
+  </div>
 </div>

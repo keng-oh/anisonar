@@ -1,7 +1,7 @@
 module Admin
   class SongsController < BaseController
     def all
-      songs = Song.includes(:artist, anime_songs: :anime)
+      songs = Song.includes(:artist, :platform_links, anime_songs: :anime)
       songs = songs.search(params[:q]) if params[:q].present?
       songs = songs.left_joins(:platform_links).where(platform_links: { id: nil }) if params[:platform] == "unlinked"
       songs = songs.order(sort_order)
@@ -41,6 +41,13 @@ module Admin
       else
         render :edit, status: :unprocessable_entity
       end
+    end
+
+    def destroy
+      @song = Song.find(params[:id])
+      title = @song.title
+      @song.destroy!
+      redirect_to all_admin_songs_path, notice: "「#{title}」を削除しました"
     end
 
     def spotify_link
