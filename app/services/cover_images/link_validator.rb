@@ -17,7 +17,7 @@ module CoverImages
     def call
       cleared_ids = []
 
-      Anime.where.not(cover_image_url: [nil, ""]).find_each(batch_size: @batch_size) do |anime|
+      Anime.where.not(cover_image_url: [ nil, "" ]).find_each(batch_size: @batch_size) do |anime|
         next if reachable?(anime.cover_image_url)
 
         anime.update!(cover_image_url: nil)
