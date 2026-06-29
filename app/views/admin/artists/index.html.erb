@@ -32,13 +32,16 @@
         <th>タイプ</th>
         <th>曲数</th>
         <th>Spotify</th>
+        <th></th>
       </tr>
     </thead>
     <tbody>
       <% @artists.each do |artist| %>
         <tr>
           <td>
-            <p class="font-semibold"><%= artist.name %></p>
+            <%= link_to edit_admin_artist_path(artist), class: "link link-hover" do %>
+              <p class="font-semibold"><%= artist.name %></p>
+            <% end %>
             <% if artist.name_kana.present? %>
               <p class="text-xs text-base-content/60"><%= artist.name_kana %></p>
             <% end %>
@@ -52,6 +55,11 @@
             <% else %>
               <span class="badge badge-ghost badge-sm">未連携</span>
             <% end %>
+          </td>
+          <td>
+            <div class="flex gap-1 justify-end">
+              <%= link_to "編集", edit_admin_artist_path(artist), class: "btn btn-ghost btn-xs" %>
+            </div>
           </td>
         </tr>
       <% end %>

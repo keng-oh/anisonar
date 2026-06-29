@@ -28,7 +28,11 @@ Rails.application.routes.draw do
         post :spotify_link
       end
     end
-    resources :artists, only: [ :index ]
+    resources :artists, only: [ :index, :new, :create, :edit, :update ] do
+      member do
+        post :spotify_link
+      end
+    end
     resources :integrations, only: [] do
       collection do
         get :cover_images
@@ -41,7 +45,12 @@ Rails.application.routes.draw do
 
   namespace :api do
     namespace :admin do
-      resources :artists,      only: [ :index ]
+      resources :artists,      only: [ :index ] do
+        member do
+          get :spotify_candidates
+          get :spotify_artist
+        end
+      end
       resources :animes,       only: [ :index ]
       resources :anime_series, only: [ :index ]
       resources :songs, only: [] do

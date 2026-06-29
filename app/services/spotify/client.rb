@@ -32,17 +32,27 @@ module Spotify
     # 検索でうまく見つからない曲を、トラックIDを直接指定して取得する用途。
     # @return [Hash] トラック情報
     def get_track(id)
-      raise Error, "SPOTIFY_CLIENT_ID/SECRET is not set" if @client_id.blank? || @client_secret.blank?
+      get("#{API_URL}/tracks/#{id}")
+    end
 
-      res = @conn.get("#{API_URL}/tracks/#{id}") do |req|
-        req.headers["Authorization"] = "Bearer #{access_token}"
-      end
-
-      raise Error, "HTTP #{res.status}: #{res.body.inspect}" unless res.success?
-      res.body
+    # 検索でうまく見つからないアーティストを、アーティストIDを直接指定して取得する用途。
+    # @return [Hash] アーティスト情報
+    def get_artist(id)
+      get("#{API_URL}/artists/#{id}")
     end
 
     private
+
+      def get(url)
+        raise Error, "SPOTIFY_CLIENT_ID/SECRET is not set" if @client_id.blank? || @client_secret.blank?
+
+        res = @conn.get(url) do |req|
+          req.headers["Authorization"] = "Bearer #{access_token}"
+        end
+
+        raise Error, "HTTP #{res.status}: #{res.body.inspect}" unless res.success?
+        res.body
+      end
 
       def search(type:, query:, limit:)
         raise Error, "SPOTIFY_CLIENT_ID/SECRET is not set" if @client_id.blank? || @client_secret.blank?

@@ -1,0 +1,92 @@
+<div class="card bg-base-100 shadow-sm"
+  x-data="{
+    loading: false,
+    error: null,
+    candidates: [],
+    manualInput: '',
+
+    search() {
+      this.loading = true
+      this.error = null
+      this.candidates = []
+      fetch('<%= spotify_candidates_api_admin_artist_path(artist) %>', { credentials: 'same-origin' })
+        .then(r => r.json())
+        .then(data => {
+          if (data.error) { this.error = data.error } else { this.candidates = data }
+          this.loading = false
+        })
+    },
+
+    fetchById() {
+      const match = this.manualInput.trim().match(/artist[/:]([a-zA-Z0-9]+)/)
+      const id = match ? match[1] : this.manualInput.trim()
+      if (!id) return
+
+      this.loading = true
+      this.error = null
+      this.candidates = []
+      fetch(`<%= spotify_artist_api_admin_artist_path(artist) %>?spotify_artist_id=${encodeURIComponent(id)}`, { credentials: 'same-origin' })
+        .then(r => r.json())
+        .then(data => {
+          if (data.error) { this.error = data.error } else { this.candidates = [data] }
+          this.loading = false
+        })
+    },
+
+    select(candidate) {
+      const form = document.getElementById('spotify-link-form-<%= artist.id %>')
+      form.querySelector('[name=spotify_artist_id]').value = candidate.id
+      form.querySelector('[name=image_url]').value         = candidate.image_url || ''
+      form.requestSubmit()
+    }
+  }">
+  <div class="card-body gap-3">
+    <h2 class="card-title text-lg">Spotify連携</h2>
+
+    <% if artist.spotify_artist_id.present? %>
+      <div class="flex items-center gap-3">
+        <% if artist.image_url.present? %>
+          <img src="<%= artist.image_url %>" class="w-12 h-12 rounded object-cover">
+        <% end %>
+        <div class="text-sm">
+          <%= link_to artist.spotify_artist_id, "https://open.spotify.com/artist/#{artist.spotify_artist_id}",
+                target: "_blank", rel: "noopener", class: "link link-primary text-xs" %>
+        </div>
+      </div>
+    <% else %>
+      <p class="text-sm text-base-content/50">未連携</p>
+    <% end %>
+
+    <button type="button" class="btn btn-sm btn-outline w-fit" @click="search()" :disabled="loading">
+      <span x-show="!loading">Spotifyで検索</span>
+      <span x-show="loading">検索中...</span>
+    </button>
+
+    <div class="flex items-center gap-2">
+      <input type="text" class="input input-bordered input-sm flex-1"
+        placeholder="見つからない場合: SpotifyのURLまたはアーティストIDを貼り付け"
+        x-model="manualInput"
+        @keydown.enter.prevent="fetchById()">
+      <button type="button" class="btn btn-sm btn-outline" @click="fetchById()" :disabled="loading || !manualInput.trim()">取得</button>
+    </div>
+
+    <p x-show="error" class="text-sm text-error" x-text="error"></p>
+
+    <div x-show="candidates.length > 0" class="flex flex-col gap-2">
+      <template x-for="candidate in candidates" :key="candidate.id">
+        <div class="flex items-center gap-3 p-2 border border-base-300 rounded-lg">
+          <img :src="candidate.image_url" x-show="candidate.image_url" class="w-10 h-10 rounded object-cover">
+          <div class="text-sm flex-1 min-w-0">
+            <a :href="candidate.url" target="_blank" rel="noopener" class="link link-primary font-semibold truncate block" x-text="candidate.name"></a>
+          </div>
+          <button type="button" class="btn btn-xs btn-primary" @click="select(candidate)">選択</button>
+        </div>
+      </template>
+    </div>
+
+    <%= form_with url: spotify_link_admin_artist_path(artist), method: :post, html: { id: "spotify-link-form-#{artist.id}", class: "hidden" } do %>
+      <%= hidden_field_tag :spotify_artist_id %>
+      <%= hidden_field_tag :image_url %>
+    <% end %>
+  </div>
+</div>

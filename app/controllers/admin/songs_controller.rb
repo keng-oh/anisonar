@@ -70,17 +70,12 @@ module Admin
 
       def service_params
         {
-          song:               @song,
-          artist_id:          params.dig(:song, :artist_id),
-          new_artist_params:  inline_artist_params,
-          anime_entries:      params.dig(:song, :anime_entries)  || [],
-          series_entries:     params.dig(:song, :series_entries) || [],
-          user:               current_user
+          song:            @song,
+          artist_id:       params.dig(:song, :artist_id),
+          anime_entries:   params.dig(:song, :anime_entries)  || [],
+          series_entries:  params.dig(:song, :series_entries) || [],
+          user:            current_user
         }
-      end
-
-      def inline_artist_params
-        params.expect(song: { new_artist: [ :name, :name_kana, :artist_type, :image_url, :anime_id ] })[:new_artist]
       end
 
       def spotify_link_params

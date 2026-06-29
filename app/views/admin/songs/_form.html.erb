@@ -26,15 +26,13 @@
     </div>
   </div>
 
-  <%# アーティスト（インクリメンタルサーチ + 新規登録） %>
+  <%# アーティスト（インクリメンタルサーチ） %>
   <div class="card bg-base-100 shadow-sm"
     x-data="{
       query: '<%= j song.artist&.name.to_s %>',
       results: [],
       selectedId: '<%= song.artist_id.to_s %>',
       open: false,
-      isNew: false,
-      artistType: 'person',
       debounce: null,
 
       search() {
@@ -44,7 +42,7 @@
           fetch(`/api/admin/artists?q=${encodeURIComponent(this.query)}`, { credentials: 'same-origin' })
             .then(r => r.json())
             .then(data => {
-              this.results = [{ id: 'new', label: '+ 新規アーティストを登録' }, ...data]
+              this.results = data
               this.open = true
             })
         }, 300)
@@ -52,14 +50,15 @@
 
       select(item) {
         this.selectedId = item.id
-        this.query = item.id === 'new' ? '' : item.label
-        this.isNew = item.id === 'new'
+        this.query = item.label
         this.open = false
-        this.artistType = 'person'
       }
     }">
     <div class="card-body gap-4">
-      <h2 class="card-title text-lg">アーティスト</h2>
+      <div class="flex items-center justify-between">
+        <h2 class="card-title text-lg">アーティスト</h2>
+        <%= link_to "見つからない場合はアーティストを追加 →", new_admin_artist_path, target: "_blank", rel: "noopener", class: "text-xs link link-primary" %>
+      </div>
 
       <div class="form-control relative">
         <label class="label"><span class="label-text">アーティスト <span class="text-error">*</span></span></label>
@@ -77,52 +76,12 @@
           <template x-for="item in results" :key="item.id">
             <div @click="select(item)"
               class="px-4 py-2 cursor-pointer hover:bg-base-200 text-sm"
-              :class="item.id === 'new' ? 'text-primary font-semibold border-b border-base-300' : ''"
               x-text="item.label">
             </div>
           </template>
           <div x-show="results.length === 0" class="px-4 py-2 text-sm text-base-content/50">
             候補がありません
           </div>
-        </div>
-      </div>
-
-      <div x-show="isNew" x-cloak class="flex flex-col gap-3 border border-base-300 rounded-lg p-4">
-        <p class="text-sm font-semibold text-base-content/70">新規アーティスト情報</p>
-
-        <div class="grid grid-cols-2 gap-3">
-          <div class="form-control">
-            <label class="label"><span class="label-text">名前 <span class="text-error">*</span></span></label>
-            <input type="text" name="song[new_artist][name]" class="input input-bordered w-full" placeholder="アーティスト名">
-          </div>
-          <div class="form-control">
-            <label class="label"><span class="label-text">読み（カナ）</span></label>
-            <input type="text" name="song[new_artist][name_kana]" class="input input-bordered w-full" placeholder="カナ">
-          </div>
-        </div>
-
-        <div class="form-control">
-          <label class="label"><span class="label-text">種別 <span class="text-error">*</span></span></label>
-          <select name="song[new_artist][artist_type]" class="select select-bordered w-full" x-model="artistType">
-            <% Artist.artist_types.keys.each do |t| %>
-              <option value="<%= t %>"><%= t %></option>
-            <% end %>
-          </select>
-        </div>
-
-        <div x-show="artistType === 'character'" x-cloak class="form-control">
-          <label class="label"><span class="label-text">所属アニメ（キャラクターの場合必須）</span></label>
-          <select name="song[new_artist][anime_id]" class="select select-bordered w-full">
-            <option value="">選択してください</option>
-            <% Anime.order(season: :desc, title: :asc).each do |anime| %>
-              <option value="<%= anime.id %>"><%= anime.title %><% if anime.season.present? %>（<%= season_label(anime.season) %>）<% end %></option>
-            <% end %>
-          </select>
-        </div>
-
-        <div class="form-control">
-          <label class="label"><span class="label-text">画像 URL</span></label>
-          <input type="text" name="song[new_artist][image_url]" class="input input-bordered w-full" placeholder="https://...">
         </div>
       </div>
     </div>

@@ -8,18 +8,17 @@ module Songs
       new(**kwargs).call
     end
 
-    def initialize(song:, artist_id:, new_artist_params:, anime_entries:, series_entries:, user:)
-      @song              = song
-      @artist_id         = artist_id
-      @new_artist_params = new_artist_params
-      @anime_entries     = anime_entries
-      @series_entries    = series_entries
-      @user              = user
+    def initialize(song:, artist_id:, anime_entries:, series_entries:, user:)
+      @song           = song
+      @artist_id      = artist_id
+      @anime_entries  = anime_entries
+      @series_entries = series_entries
+      @user           = user
     end
 
     def call
       ApplicationRecord.transaction do
-        artist = resolve_artist
+        artist = Artist.find_by(id: @artist_id)
         break unless artist
 
         @song.artist = artist
@@ -35,21 +34,6 @@ module Songs
     end
 
     private
-
-      def resolve_artist
-        if @artist_id == "new"
-          artist = Artist.new(@new_artist_params)
-          artist.created_by_user ||= @user
-          artist.updated_by_user = @user
-          unless artist.save
-            artist.errors.each { |e| @song.errors.add(:base, "アーティスト #{e.full_message}") }
-            raise ActiveRecord::Rollback
-          end
-          artist
-        else
-          Artist.find_by(id: @artist_id)
-        end
-      end
 
       def reconcile_anime_songs
         return if @anime_entries.nil?
