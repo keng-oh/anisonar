@@ -1,13 +1,8 @@
 module Admin
   class SongsController < BaseController
-    def index
-      @songs = Song.pending_review.includes(:artist, :animes).order(created_at: :asc)
-    end
-
     def all
       songs = Song.includes(:artist, anime_songs: :anime)
       songs = songs.search(params[:q]) if params[:q].present?
-      songs = songs.where(status: params[:status]) if params[:status].present?
       songs = songs.left_joins(:platform_links).where(platform_links: { id: nil }) if params[:platform] == "unlinked"
       songs = songs.order(sort_order)
 
@@ -25,7 +20,7 @@ module Admin
       Songs::SaveService.call(**service_params)
 
       if @song.persisted?
-        redirect_to admin_songs_path, notice: "「#{@song.title}」を登録しました"
+        redirect_to all_admin_songs_path, notice: "「#{@song.title}」を登録しました"
       else
         render :new, status: :unprocessable_entity
       end
@@ -42,22 +37,10 @@ module Admin
       Songs::SaveService.call(**service_params)
 
       if @song.errors.none?
-        redirect_to admin_songs_path, notice: "「#{@song.title}」を更新しました"
+        redirect_to all_admin_songs_path, notice: "「#{@song.title}」を更新しました"
       else
         render :edit, status: :unprocessable_entity
       end
-    end
-
-    def approve
-      song = Song.find(params[:id])
-      song.approve!
-      redirect_to admin_songs_path, notice: "「#{song.title}」を承認しました"
-    end
-
-    def reject
-      song = Song.find(params[:id])
-      song.reject!
-      redirect_to admin_songs_path, notice: "「#{song.title}」を否認しました"
     end
 
     def spotify_link
@@ -72,10 +55,9 @@ module Admin
     private
 
       SORT_OPTIONS = {
-        "newest"  => { created_at: :desc },
-        "oldest"  => { created_at: :asc },
-        "title"   => { title: :asc },
-        "approve" => { approve_count: :desc }
+        "newest" => { created_at: :desc },
+        "oldest" => { created_at: :asc },
+        "title"  => { title: :asc }
       }.freeze
 
       def sort_order
@@ -83,7 +65,7 @@ module Admin
       end
 
       def song_params
-        params.expect(song: [ :title, :status, :notes ])
+        params.expect(song: [ :title, :notes ])
       end
 
       def service_params

@@ -9,12 +9,8 @@ class Song < ApplicationRecord
   has_many :platform_links, dependent: :destroy
   has_many :reviews, dependent: :destroy
 
-  enum :status, { pending: 0, reviewing: 1, approved: 2, rejected: 3 }
-
   validates :title, presence: true
 
-  scope :approved, -> { where(status: :approved) }
-  scope :pending_review, -> { where(status: [ :pending, :reviewing ]) }
   scope :search, ->(q) { joins(:artist).where("songs.title ILIKE :q OR artists.name ILIKE :q", q: "%#{sanitize_sql_like(q)}%") }
 
   def spotify_link
@@ -24,13 +20,5 @@ class Song < ApplicationRecord
   def spotify_url
     link = spotify_link
     "https://open.spotify.com/track/#{link.platform_track_id}" if link
-  end
-
-  def approve!
-    update!(status: :approved)
-  end
-
-  def reject!
-    update!(status: :rejected)
   end
 end

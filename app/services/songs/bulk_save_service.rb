@@ -4,7 +4,6 @@ module Songs
 
     # songs_data: Array of Hash
     #   title:             String (required)
-    #   status:            String (default: "pending")
     #   notes:             String (optional)
     #   artist_id:         Integer | "new" (required)
     #   new_artist:        Hash (required when artist_id == "new")
@@ -34,9 +33,8 @@ module Songs
       @songs_data.each do |data|
         song = find_or_initialize(data)
         song.assign_attributes(
-          title:  data[:title],
-          status: data[:status] || :pending,
-          notes:  data[:notes]
+          title: data[:title],
+          notes: data[:notes]
         )
         song.created_by_user ||= @user
 

@@ -1,0 +1,75 @@
+<% content_for :title, "アーティスト一覧 | 管理画面" %>
+
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-bold">アーティスト一覧</h1>
+  <span class="badge badge-outline"><%= @pagy.count %> 件</span>
+</div>
+
+<%= form_with url: admin_artists_path, method: :get, class: "mb-4 flex flex-wrap gap-2 items-end" do |f| %>
+  <label class="input input-bordered flex items-center gap-2 flex-1 min-w-48">
+    <%= f.text_field :q, value: params[:q], placeholder: "名前・カナで検索", class: "grow" %>
+  </label>
+
+  <%= f.select :spotify,
+        [ [ "Spotify連携: 全て", "" ], [ "連携済み", "linked" ], [ "未連携", "unlinked" ] ],
+        { selected: params[:spotify] },
+        class: "select select-bordered" %>
+
+  <%= f.select :sort,
+        [ [ "新しい順", "newest" ], [ "古い順", "oldest" ], [ "名前順", "name" ] ],
+        { selected: params[:sort] || "newest" },
+        class: "select select-bordered" %>
+
+  <%= f.submit "絞り込み", class: "btn btn-primary" %>
+  <%= link_to "クリア", admin_artists_path, class: "btn btn-ghost" %>
+<% end %>
+
+<div class="overflow-x-auto">
+  <table class="table table-zebra">
+    <thead>
+      <tr>
+        <th>名前</th>
+        <th>タイプ</th>
+        <th>曲数</th>
+        <th>Spotify</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @artists.each do |artist| %>
+        <tr>
+          <td>
+            <p class="font-semibold"><%= artist.name %></p>
+            <% if artist.name_kana.present? %>
+              <p class="text-xs text-base-content/60"><%= artist.name_kana %></p>
+            <% end %>
+          </td>
+          <td><span class="badge badge-ghost badge-sm"><%= artist_type_label(artist.artist_type) %></span></td>
+          <td class="text-sm text-right"><%= artist.songs.size %></td>
+          <td class="text-sm">
+            <% if artist.spotify_artist_id.present? %>
+              <%= link_to "連携済み", "https://open.spotify.com/artist/#{artist.spotify_artist_id}",
+                    target: "_blank", rel: "noopener", class: "badge badge-success badge-sm" %>
+            <% else %>
+              <span class="badge badge-ghost badge-sm">未連携</span>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<% if @pagy.pages > 1 %>
+  <div class="flex justify-center mt-6">
+    <div class="join">
+      <%= link_to "«", @pagy.previous ? @pagy.page_url(@pagy.previous) : "#",
+            class: "join-item btn btn-sm #{'btn-disabled' unless @pagy.previous}" %>
+      <% ([1, @pagy.page - 2].max..[@pagy.pages, @pagy.page + 2].min).each do |p| %>
+        <%= link_to p, @pagy.page_url(p),
+              class: "join-item btn btn-sm #{'btn-active' if p == @pagy.page}" %>
+      <% end %>
+      <%= link_to "»", @pagy.next ? @pagy.page_url(@pagy.next) : "#",
+            class: "join-item btn btn-sm #{'btn-disabled' unless @pagy.next}" %>
+    </div>
+  </div>
+<% end %>

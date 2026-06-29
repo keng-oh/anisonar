@@ -150,7 +150,7 @@
               </div>
               <div class="mt-2">
                 <p class="text-xs font-semibold truncate"><%= anime.title %></p>
-                <p class="text-xs opacity-40 mt-0.5"><%= anime.songs.merge(Song.approved).count %>曲収録</p>
+                <p class="text-xs opacity-40 mt-0.5"><%= anime.songs.count %>曲収録</p>
               </div>
             <% end %>
           <% end %>
@@ -160,22 +160,21 @@
   <% end %>
 
   <!-- RANKINGS -->
-  <% if @rankings.present? %>
+  <% if @recent_songs.present? %>
     <section class="py-10 bg-base-200">
       <div class="px-6 max-w-6xl mx-auto">
         <div class="flex items-end justify-between mb-5">
           <div>
-            <h2 class="text-xl font-bold tracking-tight">人気楽曲ランキング</h2>
-            <p class="text-xs opacity-40 mt-1">コミュニティの承認数をもとに集計</p>
+            <h2 class="text-xl font-bold tracking-tight">新着楽曲</h2>
+            <p class="text-xs opacity-40 mt-1">最近登録された楽曲</p>
           </div>
         </div>
 
-        <% rank_colors = { 0 => "#eab308", 1 => "#9ca3af", 2 => "#b45309" } %>
         <div class="grid grid-cols-1 gap-1.5 lg:grid-cols-2">
-          <% @rankings.each_with_index do |song, i| %>
+          <% @recent_songs.each_with_index do |song, i| %>
             <% anime = song.anime_songs.first&.anime %>
             <div class="rank-row flex items-center gap-3 px-4 py-3 rounded-xl bg-base-100">
-              <div class="w-6 text-center text-base font-extrabold shrink-0 <%= "opacity-40" unless rank_colors[i] %>" style="<%= "color:#{rank_colors[i]};" if rank_colors[i] %>"><%= i + 1 %></div>
+              <div class="w-6 text-center text-base font-extrabold shrink-0 opacity-40"><%= i + 1 %></div>
               <div class="w-10 h-10 rounded-lg shrink-0 bg-base-300 overflow-hidden">
                 <% if anime&.cover_image_url.present? %>
                   <img src="<%= anime.cover_image_url %>" alt="<%= anime.title %>" class="w-full h-full object-cover">

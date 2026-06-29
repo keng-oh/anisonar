@@ -10,13 +10,8 @@
     <%= f.text_field :q, value: params[:q], placeholder: "タイトル・アーティストで検索", class: "grow" %>
   </label>
 
-  <%= f.select :status,
-        [ [ "ステータス: 全て", "" ], [ "承認待ち", "pending" ], [ "レビュー中", "reviewing" ], [ "承認済み", "approved" ], [ "否認", "rejected" ] ],
-        { selected: params[:status] },
-        class: "select select-bordered" %>
-
   <%= f.select :sort,
-        [ [ "新しい順", "newest" ], [ "古い順", "oldest" ], [ "タイトル順", "title" ], [ "承認数順", "approve" ] ],
+        [ [ "新しい順", "newest" ], [ "古い順", "oldest" ], [ "タイトル順", "title" ] ],
         { selected: params[:sort] || "newest" },
         class: "select select-bordered" %>
 
@@ -36,9 +31,6 @@
         <th>タイトル</th>
         <th>アーティスト</th>
         <th>アニメ・種別</th>
-        <th>ステータス</th>
-        <th>承認</th>
-        <th>否認</th>
         <th>Spotify</th>
         <th></th>
       </tr>
@@ -56,11 +48,6 @@
               </div>
             <% end %>
           </td>
-          <td>
-            <span class="badge badge-sm <%= song_status_badge_class(song.status) %>"><%= song_status_label(song.status) %></span>
-          </td>
-          <td class="text-success font-bold text-sm"><%= song.approve_count %></td>
-          <td class="text-error font-bold text-sm"><%= song.reject_count %></td>
           <td class="text-sm">
             <% if song.spotify_link %>
               <span class="badge badge-success badge-sm">連携済み</span>

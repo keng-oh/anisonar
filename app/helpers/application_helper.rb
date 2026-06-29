@@ -18,14 +18,9 @@ module ApplicationHelper
     SONG_TYPE_LABELS.fetch(song_type.to_s, "-")
   end
 
-  SONG_STATUS_BADGE_CLASSES = { "pending" => "badge-warning", "reviewing" => "badge-info", "approved" => "badge-success", "rejected" => "badge-error" }.freeze
-  SONG_STATUS_LABELS = { "pending" => "承認待ち", "reviewing" => "レビュー中", "approved" => "承認済み", "rejected" => "否認" }.freeze
+  ARTIST_TYPE_LABELS = { "person" => "個人", "unit" => "グループ", "character" => "キャラクター" }.freeze
 
-  def song_status_badge_class(status)
-    SONG_STATUS_BADGE_CLASSES.fetch(status.to_s, "badge-ghost")
-  end
-
-  def song_status_label(status)
-    SONG_STATUS_LABELS.fetch(status.to_s, status.to_s)
+  def artist_type_label(artist_type)
+    ARTIST_TYPE_LABELS.fetch(artist_type.to_s, artist_type.to_s)
   end
 end

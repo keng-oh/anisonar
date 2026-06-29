@@ -20,16 +20,15 @@ Rails.application.routes.draw do
         post :enqueue_crawl_request
       end
     end
-    resources :songs, only: [ :index, :new, :create, :edit, :update ] do
+    resources :songs, only: [ :new, :create, :edit, :update ] do
       collection do
         get :all
       end
       member do
-        patch :approve
-        patch :reject
-        post  :spotify_link
+        post :spotify_link
       end
     end
+    resources :artists, only: [ :index ]
     resources :integrations, only: [] do
       collection do
         get :cover_images

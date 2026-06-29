@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_29_140554) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_29_154414) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -66,17 +66,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_29_140554) do
 
   create_table "artists", force: :cascade do |t|
     t.bigint "anime_id"
-    t.integer "approve_count", default: 0, null: false
     t.integer "artist_type", default: 0, null: false
     t.datetime "created_at", null: false
     t.bigint "created_by_user_id"
     t.string "image_url"
-    t.datetime "last_reviewed_at"
     t.string "name", null: false
     t.string "name_kana"
-    t.integer "reject_count", default: 0, null: false
     t.string "spotify_artist_id"
-    t.integer "status", default: 0, null: false
     t.datetime "updated_at", null: false
     t.bigint "updated_by_user_id"
     t.index ["anime_id"], name: "index_artists_on_anime_id"
@@ -144,14 +140,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_29_140554) do
   end
 
   create_table "songs", force: :cascade do |t|
-    t.integer "approve_count", default: 0, null: false
     t.bigint "artist_id", null: false
     t.datetime "created_at", null: false
     t.bigint "created_by_user_id"
-    t.datetime "last_reviewed_at"
     t.text "notes"
-    t.integer "reject_count", default: 0, null: false
-    t.integer "status", default: 0, null: false
     t.string "title", null: false
     t.datetime "updated_at", null: false
     t.bigint "updated_by_user_id"
@@ -171,7 +163,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_29_140554) do
     t.datetime "reset_password_sent_at"
     t.string "reset_password_token"
     t.integer "role", default: 0, null: false
-    t.integer "trusted_count", default: 0, null: false
     t.string "unconfirmed_email"
     t.datetime "updated_at", null: false
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true

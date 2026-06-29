@@ -9,7 +9,7 @@ class AnimesController < ApplicationController
       return
     end
 
-    @song_count = Song.approved.count
+    @song_count = Song.count
     @anime_count = Anime.count
     @quick_tags = Anime.with_songs.order(watchers_count: :desc).limit(6).pluck(:title)
 
@@ -19,9 +19,9 @@ class AnimesController < ApplicationController
     @airing_animes = airing.order(watchers_count: :desc).limit(8)
     @airing_animes = Anime.airing.with_songs.includes(:anime_series).order(watchers_count: :desc).limit(8) if @airing_animes.empty?
 
-    @rankings = Song.approved
+    @recent_songs = Song
       .includes(:artist, anime_songs: :anime)
-      .order(approve_count: :desc)
+      .order(created_at: :desc)
       .limit(10)
 
     covers = Anime.where.not(cover_image_url: [ nil, "" ]).order(watchers_count: :desc).limit(16).to_a
@@ -33,7 +33,6 @@ class AnimesController < ApplicationController
   def show
     @anime = Anime.find(params[:id])
     @anime_songs = @anime.anime_songs
-      .joins(:song).merge(Song.approved)
       .includes(song: [ :artist, :platform_links ])
       .order(:song_type)
   end

@@ -20,14 +20,6 @@
       </div>
 
       <div class="form-control">
-        <label class="label"><span class="label-text">ステータス</span></label>
-        <%= f.select :status,
-          Song.statuses.keys.map { |k| [k, k] },
-          {},
-          class: "select select-bordered w-full" %>
-      </div>
-
-      <div class="form-control">
         <label class="label"><span class="label-text">メモ</span></label>
         <%= f.text_area :notes, class: "textarea textarea-bordered w-full", rows: 2, placeholder: "管理用メモ（任意）" %>
       </div>
@@ -290,7 +282,7 @@
   </div>
 
   <div class="flex justify-end gap-2">
-    <%= link_to "キャンセル", admin_songs_path, class: "btn btn-ghost" %>
+    <%= link_to "キャンセル", all_admin_songs_path, class: "btn btn-ghost" %>
     <%= f.submit class: "btn btn-primary" %>
   </div>
 <% end %>

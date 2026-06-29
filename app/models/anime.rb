@@ -27,21 +27,18 @@ class Anime < ApplicationRecord
   scope :search, ->(q) { where("title ILIKE :q OR title_en ILIKE :q", q: "%#{sanitize_sql_like(q)}%") }
   scope :by_popularity, -> { order(watchers_count: :desc) }
 
-  # 自身の楽曲、もしくは所属シリーズの共通楽曲が承認済みであるアニメのみ
+  # 自身の楽曲、もしくは所属シリーズの共通楽曲があるアニメのみ
   scope :with_songs, -> {
     where(
       "EXISTS (
          SELECT 1 FROM anime_songs
-         INNER JOIN songs ON songs.id = anime_songs.song_id
-         WHERE anime_songs.anime_id = animes.id AND songs.status = :approved
+         WHERE anime_songs.anime_id = animes.id
        ) OR (
          animes.anime_series_id IS NOT NULL AND EXISTS (
            SELECT 1 FROM series_songs
-           INNER JOIN songs ON songs.id = series_songs.song_id
-           WHERE series_songs.anime_series_id = animes.anime_series_id AND songs.status = :approved
+           WHERE series_songs.anime_series_id = animes.anime_series_id
          )
-       )",
-      approved: Song.statuses[:approved]
+       )"
     )
   }
 end

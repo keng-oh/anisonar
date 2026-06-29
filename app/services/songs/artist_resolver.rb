@@ -6,7 +6,7 @@ module Songs
   # 入力 item:  { title:, artist_name:, song_type: }
   # 出力 song_data:
   #   {
-  #     title:, status:,
+  #     title:,
   #     notes: "[AI]",
   #     artist_id: Integer,
   #     anime_entries: [{ anime_id:, song_type: }]
@@ -36,7 +36,6 @@ module Songs
 
         {
           title:  item[:title],
-          status: :approved,
           notes:  "[AI]",
           artist_id: artist.id,
           anime_entries: [ { anime_id: @anime.id, song_type: item[:song_type] } ],
@@ -64,7 +63,6 @@ module Songs
         Artist.create!(
           name:              name.to_s.strip,
           artist_type:       "person",
-          status:            "approved",
           spotify_artist_id: spotify_artist_id,
           created_by_user:   @user,
           updated_by_user:   @user

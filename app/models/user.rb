@@ -6,8 +6,6 @@ class User < ApplicationRecord
 
   enum :role, { general: 0, reviewer: 1, admin: 2, ai: 3 }
 
-  validates :trusted_count, numericality: { greater_than_or_equal_to: 0 }
-
   AI_USER_EMAIL = "ai@anisonar.internal".freeze
 
   def self.ai_bot
@@ -15,9 +13,7 @@ class User < ApplicationRecord
   end
 
   def review_weight
-    return 3 if reviewer? || admin?
-    return 2 if trusted_count >= 10
-    1
+    reviewer? || admin? ? 3 : 1
   end
 
   def admin?

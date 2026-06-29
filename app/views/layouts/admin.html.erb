@@ -116,15 +116,12 @@
               <% end %>
             </li>
             <li>
-              <%= link_to admin_songs_path, class: sidebar_link_class(current_page?(admin_songs_path)) do %>
+              <%= link_to admin_artists_path, class: sidebar_link_class(current_page?(admin_artists_path)) do %>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
+                  <path d="M4 21v-1a8 8 0 0116 0v1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                 </svg>
-                レビューキュー
-                <% if @pending_review_count.to_i > 0 %>
-                  <span class="badge badge-primary badge-sm ml-auto"><%= @pending_review_count %></span>
-                <% end %>
+                アーティスト一覧
               <% end %>
             </li>
             <li>
