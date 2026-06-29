@@ -4,9 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       rake_task:
-        description: "本番のwebコンテナで実行する rake タスク（例: cover_images:revalidate）"
+        description: "本番のwebコンテナで実行する rake タスク"
         required: true
-        type: string
+        type: choice
+        options:
+          - "annict:sync"
+          - "cover_images:revalidate"
+          - "deduplication:artists_and_songs"
 
 permissions:
   contents: read

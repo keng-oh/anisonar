@@ -103,10 +103,8 @@ module Songs
           candidates.find { |a| a.name_kana.present? && normalize(a.name_kana) == normalized }
       end
 
-      # 空白の有無の表記揺れ（例: Spotify側「梶浦 由記」 vs クロール側「梶浦由記」）を
-      # 完全一致判定で吸収するため、空白は圧縮ではなく完全に除去する。
       def normalize(str)
-        str.to_s.unicode_normalize(:nfkc).downcase.gsub(/\s+/, "")
+        NameNormalizer.call(str)
       end
   end
 end

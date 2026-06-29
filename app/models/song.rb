@@ -7,7 +7,7 @@ class Song < ApplicationRecord
   has_many :series_songs, dependent: :destroy
   has_many :anime_series, through: :series_songs
   has_many :platform_links, dependent: :destroy
-  has_many :reviews, dependent: :destroy
+  has_many :reviews, as: :reviewable, dependent: :destroy
 
   validates :title, presence: true
 
