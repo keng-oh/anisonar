@@ -6,9 +6,6 @@ module Admin
                                 .limit(100)
     end
 
-    def spotify
-    end
-
     def crawl_requests
       @crawl_requests = CrawlRequest.includes(:anime).order(created_at: :desc).limit(50)
     end

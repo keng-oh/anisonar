@@ -22,18 +22,17 @@ Rails.application.routes.draw do
     end
     resources :songs, only: [ :index, :new, :create, :edit, :update ] do
       collection do
-        post :bulk_spotify_resolve
         get :all
       end
       member do
         patch :approve
         patch :reject
+        post  :spotify_link
       end
     end
     resources :integrations, only: [] do
       collection do
         get :cover_images
-        get :spotify
         get :crawl_requests
         get :annict_sync
         post "annict_sync", to: "integrations#create_annict_sync", as: :create_annict_sync
@@ -46,6 +45,12 @@ Rails.application.routes.draw do
       resources :artists,      only: [ :index ]
       resources :animes,       only: [ :index ]
       resources :anime_series, only: [ :index ]
+      resources :songs, only: [] do
+        member do
+          get :spotify_candidates
+          get :spotify_track
+        end
+      end
     end
 
     namespace :n8n do

@@ -8,7 +8,10 @@ module Admin
       songs = Song.includes(:artist, anime_songs: :anime)
       songs = songs.search(params[:q]) if params[:q].present?
       songs = songs.where(status: params[:status]) if params[:status].present?
-      @songs = songs.order(sort_order)
+      songs = songs.left_joins(:platform_links).where(platform_links: { id: nil }) if params[:platform] == "unlinked"
+      songs = songs.order(sort_order)
+
+      @pagy, @songs = pagy(:offset, songs, limit: 20)
     end
 
     def new
@@ -48,7 +51,6 @@ module Admin
     def approve
       song = Song.find(params[:id])
       song.approve!
-      SpotifyTrackResolveJob.perform_later(song.id) if song.spotify_link.nil?
       redirect_to admin_songs_path, notice: "「#{song.title}」を承認しました"
     end
 
@@ -58,14 +60,13 @@ module Admin
       redirect_to admin_songs_path, notice: "「#{song.title}」を否認しました"
     end
 
-    def bulk_spotify_resolve
-      limit = (params[:limit].presence || 20).to_i.clamp(1, 100)
-      songs = Song.approved
-                  .left_joins(:platform_links)
-                  .where(platform_links: { id: nil })
-                  .limit(limit)
-      songs.each { |song| SpotifyTrackResolveJob.perform_later(song.id) }
-      redirect_to spotify_admin_integrations_path, notice: "#{songs.size} 件のSpotify検索を開始しました"
+    def spotify_link
+      song = Song.find(params[:id])
+      link = song.platform_links.find_or_initialize_by(platform: :spotify)
+      link.assign_attributes(spotify_link_params)
+      link.save!
+      backfill_artist_spotify_id(song.artist, params[:artist_spotify_id])
+      redirect_to edit_admin_song_path(song), notice: "「#{song.title}」をSpotifyと連携しました"
     end
 
     private
@@ -98,6 +99,19 @@ module Admin
 
       def inline_artist_params
         params.expect(song: { new_artist: [ :name, :name_kana, :artist_type, :image_url, :anime_id ] })[:new_artist]
+      end
+
+      def spotify_link_params
+        params.permit(:platform_track_id, :album_platform_id, :album_name, :album_image_url, :album_release_date)
+      end
+
+      # 選んだトラックのアーティスト情報で、まだ spotify_artist_id が無いアーティストにだけ補完する
+      def backfill_artist_spotify_id(artist, spotify_artist_id)
+        return if spotify_artist_id.blank? || artist.spotify_artist_id.present?
+
+        artist.update!(spotify_artist_id: spotify_artist_id)
+      rescue ActiveRecord::RecordInvalid => e
+        Rails.logger.warn "[Admin::SongsController] failed to backfill spotify_artist_id=#{spotify_artist_id} artist_id=#{artist.id}: #{e.message}"
       end
   end
 end

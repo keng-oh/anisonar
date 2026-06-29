@@ -3,4 +3,8 @@
 <div class="max-w-2xl">
   <h1 class="text-2xl font-bold mb-6">楽曲編集: <%= @song.title %></h1>
   <%= render "form", song: @song %>
+
+  <div class="mt-4">
+    <%= render "spotify_link", song: @song %>
+  </div>
 </div>

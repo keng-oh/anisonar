@@ -2,7 +2,7 @@
 
 <div class="flex items-center justify-between mb-6">
   <h1 class="text-2xl font-bold">楽曲一覧</h1>
-  <span class="badge badge-outline"><%= @songs.count %> 件</span>
+  <span class="badge badge-outline"><%= @pagy.count %> 件</span>
 </div>
 
 <%= form_with url: all_admin_songs_path, method: :get, class: "mb-4 flex flex-wrap gap-2 items-end" do |f| %>
@@ -18,6 +18,11 @@
   <%= f.select :sort,
         [ [ "新しい順", "newest" ], [ "古い順", "oldest" ], [ "タイトル順", "title" ], [ "承認数順", "approve" ] ],
         { selected: params[:sort] || "newest" },
+        class: "select select-bordered" %>
+
+  <%= f.select :platform,
+        [ [ "プラットフォーム連携: 全て", "" ], [ "未連携のみ", "unlinked" ] ],
+        { selected: params[:platform] },
         class: "select select-bordered" %>
 
   <%= f.submit "絞り込み", class: "btn btn-primary" %>
@@ -73,3 +78,18 @@
     </tbody>
   </table>
 </div>
+
+<% if @pagy.pages > 1 %>
+  <div class="flex justify-center mt-6">
+    <div class="join">
+      <%= link_to "«", @pagy.previous ? @pagy.page_url(@pagy.previous) : "#",
+            class: "join-item btn btn-sm #{'btn-disabled' unless @pagy.previous}" %>
+      <% ([1, @pagy.page - 2].max..[@pagy.pages, @pagy.page + 2].min).each do |p| %>
+        <%= link_to p, @pagy.page_url(p),
+              class: "join-item btn btn-sm #{'btn-active' if p == @pagy.page}" %>
+      <% end %>
+      <%= link_to "»", @pagy.next ? @pagy.page_url(@pagy.next) : "#",
+            class: "join-item btn btn-sm #{'btn-disabled' unless @pagy.next}" %>
+    </div>
+  </div>
+<% end %>
