@@ -13,6 +13,7 @@ module Api
             id: cr.id,
             urls: [ cr.anime.wikipedia_url, cr.anime.official_site_url ].compact_blank,
             status: cr.status,
+            error_message: cr.error_message,
             anime: { id: cr.anime.id, title: cr.anime.title }
           }
         }
@@ -33,7 +34,7 @@ module Api
         crawl_request = CrawlRequest.find(params[:id])
         items = params.expect(items: [ [ :title, :artist_name, :song_type ] ])
 
-        songs_data = Songs::ArtistResolver.call(items: items, anime: crawl_request.anime)
+        songs_data = Songs::ArtistResolver.call(items: items, anime: crawl_request.anime, user: User.ai_bot)
         result = Songs::BulkSaveService.call(songs_data: songs_data, user: User.ai_bot)
 
         if result.failed.empty?
