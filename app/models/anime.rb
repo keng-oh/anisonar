@@ -3,6 +3,7 @@ class Anime < ApplicationRecord
   has_many :anime_songs, dependent: :destroy
   has_many :songs, through: :anime_songs
   has_many :artists, foreign_key: :anime_id, dependent: :nullify, inverse_of: :anime
+  has_many :crawl_requests, dependent: :destroy
 
   enum :media_type, { tv: 0, movie: 1, ova: 2, ona: 3, special: 4 }
   enum :status, { airing: 0, finished: 1 }

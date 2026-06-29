@@ -37,10 +37,12 @@ Rails.application.routes.draw do
       collection do
         get :cover_images
         get :crawl_requests
+        post :bulk_enqueue_crawl_requests
         get :annict_sync
         post "annict_sync", to: "integrations#create_annict_sync", as: :create_annict_sync
       end
     end
+    resources :crawl_requests, only: [ :destroy ]
   end
 
   namespace :api do
