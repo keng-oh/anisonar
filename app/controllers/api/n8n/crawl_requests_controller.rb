@@ -29,21 +29,15 @@ module Api
         end
       end
 
-      # n8nがAIで抽出した楽曲データ（曲名・アーティスト等）を受け取り保存する
+      # n8nがAIで抽出した楽曲データ（曲名・アーティスト等）を受け取り、非同期で保存する。
+      # アーティスト/楽曲のSpotify問い合わせを含むため、ジョブに積んで即時レスポンスする。
+      # 実際の成否は GET /api/n8n/crawl_requests?status=done|failed をポーリングして確認する。
       def songs
         crawl_request = CrawlRequest.find(params[:id])
-        items = params.expect(items: [ [ :title, :artist_name, :song_type ] ])
+        items = params.expect(items: [ [ :title, :artist_name, :song_type ] ]).map(&:to_h)
 
-        songs_data = Songs::ArtistResolver.call(items: items, anime: crawl_request.anime, user: User.ai_bot)
-        result = Songs::BulkSaveService.call(songs_data: songs_data, user: User.ai_bot)
-
-        if result.failed.empty?
-          crawl_request.update!(status: :done)
-          render json: { saved: result.saved.size, failed: 0 }
-        else
-          crawl_request.update!(status: :failed, error_message: result.failed.map { |f| f[:messages].join(", ") }.join("; "))
-          render json: { saved: result.saved.size, failed: result.failed.size }, status: :unprocessable_entity
-        end
+        CrawlSongsImportJob.perform_later(crawl_request.id, items)
+        render json: { queued: true }, status: :accepted
       end
 
       private

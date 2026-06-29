@@ -27,9 +27,22 @@ module Spotify
 
     private
 
+      # 検索結果の artists 配列を、spotify_artist_id（無ければ正規化名）で検証してから採用する。
+      # 曲名は表記揺れ・カバー・ライブ版などで誤マッチしやすいため、確信が持てない場合は nil を返す。
       def best_match
         query = %(track:"#{@song.title}" artist:"#{@song.artist.name}")
-        @client.search_track(query, limit: 5).first
+        candidates = @client.search_track(query, limit: 5)
+
+        if @song.artist.spotify_artist_id.present?
+          candidates.find { |t| t["artists"].any? { |a| a["id"] == @song.artist.spotify_artist_id } }
+        else
+          normalized_artist = normalize(@song.artist.name)
+          candidates.find { |t| t["artists"].any? { |a| normalize(a["name"]) == normalized_artist } }
+        end
+      end
+
+      def normalize(str)
+        str.to_s.unicode_normalize(:nfkc).downcase.gsub(/\s+/, "")
       end
   end
 end
