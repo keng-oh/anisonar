@@ -41,8 +41,8 @@
         <% spotify_link = song.platform_links.find(&:spotify?) %>
         <tr>
           <td>
-            <% if spotify_link&.album_image_url.present? %>
-              <img src="<%= spotify_link.album_image_url %>" class="w-8 h-8 rounded object-cover">
+            <% if song.album_image_url.present? %>
+              <img src="<%= song.album_image_url %>" class="w-8 h-8 rounded object-cover">
             <% end %>
           </td>
           <td class="font-semibold max-w-48 truncate"><%= song.title %></td>

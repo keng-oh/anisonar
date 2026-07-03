@@ -1,5 +1,6 @@
 class Song < ApplicationRecord
   belongs_to :artist
+  belongs_to :album, optional: true
   belongs_to :created_by_user, class_name: "User", optional: true
   belongs_to :updated_by_user, class_name: "User", optional: true
   has_many :anime_songs, dependent: :destroy
@@ -8,6 +9,8 @@ class Song < ApplicationRecord
   has_many :anime_series, through: :series_songs
   has_many :platform_links, dependent: :destroy
   has_many :reviews, as: :reviewable, dependent: :destroy
+
+  delegate :name, :image_url, :release_date, to: :album, prefix: true, allow_nil: true
 
   validates :title, presence: true
 

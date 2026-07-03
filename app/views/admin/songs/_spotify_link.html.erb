@@ -49,11 +49,11 @@
 
     <% if song.spotify_link %>
       <div class="flex items-center gap-3">
-        <% if song.spotify_link.album_image_url.present? %>
-          <img src="<%= song.spotify_link.album_image_url %>" class="w-12 h-12 rounded object-cover">
+        <% if song.album_image_url.present? %>
+          <img src="<%= song.album_image_url %>" class="w-12 h-12 rounded object-cover">
         <% end %>
         <div class="text-sm">
-          <p class="text-base-content/60"><%= song.spotify_link.album_name %></p>
+          <p class="text-base-content/60"><%= song.album_name %></p>
           <%= link_to song.spotify_link.platform_track_id, "https://open.spotify.com/track/#{song.spotify_link.platform_track_id}",
                 target: "_blank", rel: "noopener", class: "link link-primary text-xs" %>
         </div>

@@ -10,9 +10,19 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_29_154414) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_04_100000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "albums", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "image_url"
+    t.string "name", null: false
+    t.string "release_date"
+    t.string "spotify_album_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["spotify_album_id"], name: "index_albums_on_spotify_album_id", unique: true
+  end
 
   create_table "anime_series", force: :cascade do |t|
     t.string "annict_series_id"
@@ -93,10 +103,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_29_154414) do
   end
 
   create_table "platform_links", force: :cascade do |t|
-    t.string "album_image_url"
-    t.string "album_name"
-    t.string "album_platform_id"
-    t.string "album_release_date"
     t.datetime "created_at", null: false
     t.integer "platform", null: false
     t.string "platform_track_id", null: false
@@ -140,6 +146,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_29_154414) do
   end
 
   create_table "songs", force: :cascade do |t|
+    t.bigint "album_id"
     t.bigint "artist_id", null: false
     t.datetime "created_at", null: false
     t.bigint "created_by_user_id"
@@ -147,6 +154,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_29_154414) do
     t.string "title", null: false
     t.datetime "updated_at", null: false
     t.bigint "updated_by_user_id"
+    t.index ["album_id"], name: "index_songs_on_album_id"
     t.index ["artist_id"], name: "index_songs_on_artist_id"
     t.index ["created_by_user_id"], name: "index_songs_on_created_by_user_id"
     t.index ["updated_by_user_id"], name: "index_songs_on_updated_by_user_id"
@@ -183,6 +191,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_29_154414) do
   add_foreign_key "reviews", "users"
   add_foreign_key "series_songs", "anime_series"
   add_foreign_key "series_songs", "songs"
+  add_foreign_key "songs", "albums"
   add_foreign_key "songs", "artists"
   add_foreign_key "songs", "users", column: "created_by_user_id"
   add_foreign_key "songs", "users", column: "updated_by_user_id"

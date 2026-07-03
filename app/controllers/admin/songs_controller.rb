@@ -1,7 +1,7 @@
 module Admin
   class SongsController < BaseController
     def all
-      songs = Song.includes(:artist, :platform_links, anime_songs: :anime)
+      songs = Song.includes(:artist, :album, :platform_links, anime_songs: :anime)
       songs = songs.search(params[:q]) if params[:q].present?
       songs = songs.left_joins(:platform_links).where(platform_links: { id: nil }) if params[:platform] == "unlinked"
       songs = songs.order(sort_order)
@@ -52,9 +52,20 @@ module Admin
 
     def spotify_link
       song = Song.find(params[:id])
+
+      if params[:album_platform_id].present? && params[:album_name].present?
+        album = Album.find_or_create_by!(spotify_album_id: params[:album_platform_id]) do |a|
+          a.name         = params[:album_name]
+          a.image_url    = params[:album_image_url]
+          a.release_date = params[:album_release_date]
+        end
+        song.update_columns(album_id: album.id)
+      end
+
       link = song.platform_links.find_or_initialize_by(platform: :spotify)
-      link.assign_attributes(spotify_link_params)
+      link.platform_track_id = params[:platform_track_id]
       link.save!
+
       backfill_artist_spotify_id(song.artist, params[:artist_spotify_id])
       redirect_to edit_admin_song_path(song), notice: "「#{song.title}」をSpotifyと連携しました"
     end
@@ -85,9 +96,6 @@ module Admin
         }
       end
 
-      def spotify_link_params
-        params.permit(:platform_track_id, :album_platform_id, :album_name, :album_image_url, :album_release_date)
-      end
 
       # 選んだトラックのアーティスト情報で、まだ spotify_artist_id が無いアーティストにだけ補完する
       def backfill_artist_spotify_id(artist, spotify_artist_id)

@@ -13,14 +13,19 @@ module Spotify
       track = best_match
       return nil unless track
 
-      album = track["album"] || {}
+      album_data = track["album"] || {}
+
+      if album_data["id"].present? && album_data["name"].present?
+        album = Album.find_or_create_by!(spotify_album_id: album_data["id"]) do |a|
+          a.name         = album_data["name"]
+          a.image_url    = album_data.dig("images", 0, "url")
+          a.release_date = album_data["release_date"]
+        end
+        @song.update_columns(album_id: album.id)
+      end
 
       link = @song.platform_links.find_or_initialize_by(platform: :spotify)
-      link.platform_track_id   = track["id"]
-      link.album_platform_id   = album["id"]
-      link.album_name          = album["name"]
-      link.album_image_url     = album.dig("images", 0, "url")
-      link.album_release_date  = album["release_date"]
+      link.platform_track_id = track["id"]
       link.save!
       link
     end
