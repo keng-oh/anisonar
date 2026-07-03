@@ -13,6 +13,8 @@ module Spotify
       track = best_match
       return nil unless track
 
+      backfill_artist_spotify_id(track)
+
       album_data = track["album"] || {}
 
       if album_data["id"].present? && album_data["name"].present?
@@ -42,8 +44,23 @@ module Spotify
           candidates.find { |t| t["artists"].any? { |a| a["id"] == @song.artist.spotify_artist_id } }
         else
           normalized_artist = normalize(@song.artist.name)
-          candidates.find { |t| t["artists"].any? { |a| normalize(a["name"]) == normalized_artist } }
+          # まず完全一致、なければ部分一致（DBのアーティスト名にSpotifyのアーティスト名が含まれるか）
+          candidates.find { |t| t["artists"].any? { |a| normalize(a["name"]) == normalized_artist } } ||
+            candidates.find { |t| t["artists"].any? { |a| normalized_artist.include?(normalize(a["name"])) } }
         end
+      end
+
+      def backfill_artist_spotify_id(track)
+        return if @song.artist.spotify_artist_id.present?
+
+        normalized = normalize(@song.artist.name)
+        matched = track["artists"].find { |a| normalize(a["name"]) == normalized } ||
+                  track["artists"].find { |a| normalized.include?(normalize(a["name"])) }
+        return unless matched
+
+        @song.artist.update_columns(spotify_artist_id: matched["id"])
+      rescue => e
+        Rails.logger.warn "[Spotify::TrackResolver] failed to backfill spotify_artist_id artist_id=#{@song.artist_id}: #{e.message}"
       end
 
       def normalize(str)

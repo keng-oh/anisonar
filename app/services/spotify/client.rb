@@ -59,9 +59,10 @@ module Spotify
 
         res = @conn.get("#{API_URL}/search") do |req|
           req.headers["Authorization"] = "Bearer #{access_token}"
-          req.params["q"]     = query
-          req.params["type"]  = type
-          req.params["limit"] = limit
+          req.params["q"]      = query
+          req.params["type"]   = type
+          req.params["limit"]  = limit
+          req.params["market"] = "JP"
         end
 
         raise Error, "HTTP #{res.status}: #{res.body.inspect}" unless res.success?
