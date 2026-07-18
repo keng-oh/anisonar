@@ -1,0 +1,44 @@
+name: 機能追加・改善
+description: 新しい機能や既存機能の改善を提案する
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: background
+    attributes:
+      label: 背景・課題
+      description: なぜやりたいのか。現状どう困っているか
+      placeholder: サントラは公式サイトに個別のアーティスト表記がなく、クロールでは取りこぼす
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: やりたいこと
+      description: 実現したい状態
+      placeholder: Spotify のアルバム検索から、サントラ・キャラソンをアルバム単位で一括取り込みできるようにする
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: 実装メモ
+      description: 現時点でわかっている実装方針・調査済みの情報・影響範囲など
+      placeholder: |
+        - Spotify::Client に search_album / get_album_tracks が未実装
+        - Album モデル・Spotify::TrackResolver は既存なので延長線上
+    validations:
+      required: false
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 完了条件
+      description: 何ができたら完了とみなすか
+      placeholder: |
+        - [ ] アルバム名で検索して候補を選べる
+        - [ ] 全トラックが song_type: soundtrack で登録される
+    validations:
+      required: false

@@ -1,0 +1,33 @@
+name: 調査・技術検討
+description: 原因が不明なもの、方式を決めるための調査タスク
+title: "[Spike] "
+labels: ["investigation"]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: 明らかにしたいこと
+      description: この調査で答えを出したい問い
+      placeholder: 手動なら見つかる楽曲が、自動のSpotify検索でヒットしないのはなぜか
+    validations:
+      required: true
+
+  - type: textarea
+    id: observation
+    attributes:
+      label: 現状わかっていること
+      description: 観測した事実・仮説
+      placeholder: |
+        - TrackResolver#best_match は誤マッチを避けるため確信が持てない場合 nil を返す設計
+        - 完全一致優先の条件が厳しすぎる可能性
+    validations:
+      required: false
+
+  - type: textarea
+    id: done
+    attributes:
+      label: この調査のゴール
+      description: 何が出たら終わりか（方針決定・再現手順の確定・別Issue起票など）
+      placeholder: 取りこぼしの原因を特定し、条件を緩める方針を決めて実装Issueを起票する
+    validations:
+      required: false

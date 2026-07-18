@@ -1,0 +1,50 @@
+name: バグ報告
+description: 想定と異なる挙動・エラーを報告する
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: 事象
+      description: 何が起きているかを簡潔に
+      placeholder: クロール後にアーティストが重複して作成される
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 再現手順
+      placeholder: |
+        1. 管理画面からシリーズをクロールキューに追加
+        2. n8n の「アニソンDB クロール〜抽出パイプライン」を手動実行
+        3. アーティスト一覧を確認
+    validations:
+      required: false
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期待する挙動
+      placeholder: 同名のアーティストは既存レコードが再利用される
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: ログ・エラーメッセージ
+      description: Sidekiq / Rails ログ、n8n の実行IDなど
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: 関連しそうな箇所
+      description: 見当がついていれば。ファイルパスやサービス名など
+      placeholder: app/services/songs/artist_resolver.rb の find_existing_artist
+    validations:
+      required: false
