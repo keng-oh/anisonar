@@ -1,5 +1,12 @@
 # Anisonar
 
+[![CI](https://github.com/keng-oh/anisonar/actions/workflows/ci.yml/badge.svg)](https://github.com/keng-oh/anisonar/actions/workflows/ci.yml)
+[![Deploy](https://github.com/keng-oh/anisonar/actions/workflows/deploy.yml/badge.svg)](https://github.com/keng-oh/anisonar/actions/workflows/deploy.yml)
+[![Release](https://img.shields.io/github/v/release/keng-oh/anisonar)](https://github.com/keng-oh/anisonar/releases)
+![Ruby](https://img.shields.io/badge/Ruby-3.4.9-CC342D)
+![Rails](https://img.shields.io/badge/Rails-8.1-CC0000)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1)
+
 アニメ作品に紐づく楽曲（OP/ED/挿入歌/イメージソング）を網羅的に管理・検索できるデータベースサービス。
 楽曲データを資産として、Spotifyなどのストリーミングサービスとのプレイリスト連携も提供する。
 
