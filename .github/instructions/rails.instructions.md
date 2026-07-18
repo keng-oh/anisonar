@@ -8,6 +8,7 @@ applyTo: '**/*.rb'
 
 - Rubocop に従う（設定は `.rubocop.yml` 参照）
 - サービスオブジェクトは `app/services/` に配置、命名は `動詞 + Service`（例: `SyncAnimeService`）
+- 状態を持たない純粋なユーティリティ（値の変換・正規化など）は `app/lib/` に配置する（例: `NameFormatter`、`NameNormalizer`）
 - Sidekiq ジョブは `app/jobs/` に配置、命名は `XxxJob`
 - ViewComponent は `app/components/` に配置
 - N+1 クエリは bullet gem で検出・即修正
