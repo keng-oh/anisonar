@@ -26,18 +26,19 @@ module Songs
 
       @songs_data.each do |data|
         song = find_or_initialize(data)
-        song.assign_attributes(
-          title: data[:title],
-          notes: data[:notes]
-        )
+        song.title = data[:title]
+        song.notes = data[:notes] if data.key?(:notes)
         song.created_by_user ||= @user
 
+        # AI取り込み専用の経路のため additive（追加のみ）で保存し、
+        # 既存曲の紐付け・song_type など人間による修正を上書きしない
         Songs::SaveService.call(
           song:           song,
           artist_id:      data[:artist_id],
           anime_entries:  data[:anime_entries],
           series_entries: data[:series_entries],
-          user:           @user
+          user:           @user,
+          additive:       true
         )
 
         if song.persisted? && song.errors.none?

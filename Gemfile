@@ -39,6 +39,7 @@ gem "resend"
 gem "bullet", group: :development
 
 gem "tzinfo-data", platforms: %i[ windows jruby ]
+gem "rails-i18n"
 gem "bootsnap", require: false
 gem "kamal", require: false
 gem "thruster", require: false

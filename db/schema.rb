@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_18_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_19_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -82,11 +82,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_18_000000) do
     t.string "image_url"
     t.string "name", null: false
     t.string "name_kana"
+    t.string "normalized_name", null: false
+    t.string "normalized_name_kana"
     t.string "spotify_artist_id"
     t.datetime "updated_at", null: false
     t.bigint "updated_by_user_id"
     t.index ["anime_id"], name: "index_artists_on_anime_id"
     t.index ["created_by_user_id"], name: "index_artists_on_created_by_user_id"
+    t.index ["normalized_name"], name: "index_artists_on_normalized_name"
+    t.index ["normalized_name_kana"], name: "index_artists_on_normalized_name_kana"
     t.index ["spotify_artist_id"], name: "index_artists_on_spotify_artist_id", unique: true
     t.index ["updated_by_user_id"], name: "index_artists_on_updated_by_user_id"
   end

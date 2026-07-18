@@ -7,7 +7,6 @@ module Songs
   # 出力 song_data:
   #   {
   #     title:,
-  #     notes: "[AI]",
   #     artist_id: Integer,
   #     anime_entries: [{ anime_id:, song_type: }] | nil,
   #     series_entries: [{ anime_series_id:, song_type: }] | nil
@@ -44,7 +43,6 @@ module Songs
 
         {
           title:  item[:title],
-          notes:  "[AI]",
           artist_id: artist.id,
           anime_entries: anime_id ? [ { anime_id: anime_id, song_type: item[:song_type] } ] : nil,
           series_entries: anime_id ? nil : [ { anime_series_id: @anime_series.id, song_type: item[:song_type] } ]
@@ -99,16 +97,15 @@ module Songs
         nil
       end
 
+      # 照合キーは保存時に normalized_name / normalized_name_kana へ格納済みなので完全一致で引く。
+      # 以前は正規化した検索語を未正規化の name 列に LIKE していたため、空白を含む名前が
+      # 常に取りこぼされて重複レコードが増え続けていた。
       def find_existing_artist(name)
         normalized = normalize(name)
         return nil if normalized.blank?
 
-        candidates = Artist
-          .where("LOWER(name) ILIKE :q OR LOWER(COALESCE(name_kana, '')) ILIKE :q", q: "%#{Artist.sanitize_sql_like(normalized)}%")
-          .limit(20)
-
-        candidates.find { |a| normalize(a.name) == normalized } ||
-          candidates.find { |a| a.name_kana.present? && normalize(a.name_kana) == normalized }
+        Artist.find_by(normalized_name: normalized) ||
+          Artist.find_by(normalized_name_kana: normalized)
       end
 
       def normalize(str)

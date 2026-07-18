@@ -10,10 +10,24 @@ class Artist < ApplicationRecord
   belongs_to :created_by_user, class_name: "User", optional: true
   belongs_to :updated_by_user, class_name: "User", optional: true
 
+  before_validation :format_names
+
   validates :name, presence: true
   validates :artist_type, presence: true
   validates :anime_id, presence: true, if: :character?
   validates :spotify_artist_id, uniqueness: { allow_nil: true }
 
   scope :search, ->(q) { where("name ILIKE :q OR name_kana ILIKE :q", q: "%#{sanitize_sql_like(q)}%") }
+
+  private
+
+    # 表示値は NameFormatter で整え、照合用のキーは normalized_* に持たせる。
+    # 表示は書かれた表記を尊重し、重複判定は表記揺れを無視する、という要件を両立させるため
+    # （SQLではNFKC正規化ができないので、キーをカラムとして持つ必要がある）。
+    def format_names
+      self.name = NameFormatter.call(name)
+      self.name_kana = NameFormatter.call(name_kana)
+      self.normalized_name = NameNormalizer.call(name)
+      self.normalized_name_kana = name_kana.presence && NameNormalizer.call(name_kana)
+    end
 end
