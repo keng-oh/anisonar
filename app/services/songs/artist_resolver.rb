@@ -3,22 +3,29 @@ module Songs
   # アーティストの解決だけでなく、必要なら作成まで行い、常に実在する Artist の id を返す
   # （items 配列内に同じ新規アーティストの曲が複数あっても、作成は1回だけになるようにするため）。
   #
-  # 入力 item:  { title:, artist_name:, song_type: }
+  # 入力 item:  { title:, artist_name:, song_type:, anime_id:（省略可） }
   # 出力 song_data:
   #   {
   #     title:,
   #     notes: "[AI]",
   #     artist_id: Integer,
-  #     anime_entries: [{ anime_id:, song_type: }]
+  #     anime_entries: [{ anime_id:, song_type: }] | nil,
+  #     series_entries: [{ anime_series_id:, song_type: }] | nil
   #   }
+  #
+  # anime_id が無い item は、アニメ単体依頼（anime 指定）ならそのアニメに、
+  # シリーズ依頼（anime_series 指定）ならシリーズ共通曲として帰属させる。
   class ArtistResolver
     def self.call(**kwargs)
       new(**kwargs).call
     end
 
-    def initialize(items:, anime:, user: nil, spotify_client: Spotify::Client.new)
+    def initialize(items:, anime: nil, anime_series: nil, user: nil, spotify_client: Spotify::Client.new)
+      raise ArgumentError, "anime か anime_series のどちらかを指定してください" if anime.nil? && anime_series.nil?
+
       @items = items
       @anime = anime
+      @anime_series = anime_series
       @user = user
       @spotify_client = spotify_client
       @resolved_artists = {}
@@ -33,13 +40,14 @@ module Songs
 
       def build_song_data(item)
         artist = resolve_or_create_artist(item[:artist_name])
+        anime_id = item[:anime_id].presence&.to_i || @anime&.id
 
         {
           title:  item[:title],
           notes:  "[AI]",
           artist_id: artist.id,
-          anime_entries: [ { anime_id: @anime.id, song_type: item[:song_type] } ],
-          series_entries: nil
+          anime_entries: anime_id ? [ { anime_id: anime_id, song_type: item[:song_type] } ] : nil,
+          series_entries: anime_id ? nil : [ { anime_series_id: @anime_series.id, song_type: item[:song_type] } ]
         }
       end
 

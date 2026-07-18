@@ -25,12 +25,18 @@ module Admin
 
     def enqueue_crawl_request
       anime = Anime.find(params[:id])
-      if anime.wikipedia_url.blank? && anime.official_site_url.blank?
+      # シリーズ所属アニメは別シーズンの情報混入を避けるため、シリーズ単位でまとめてクロールする
+      crawl_request = CrawlRequest.new(
+        anime_series: anime.anime_series,
+        anime: anime.anime_series ? nil : anime,
+        status: :pending
+      )
+      if crawl_request.target_urls.empty?
         redirect_to edit_admin_anime_path(anime), alert: "クロール対象URL（Wikipedia/公式サイト）が未設定です"
         return
       end
-      CrawlRequest.create!(anime: anime, status: :pending)
-      redirect_to edit_admin_anime_path(anime), notice: "「#{anime.title}」をクロールキューへ追加しました"
+      crawl_request.save!
+      redirect_to edit_admin_anime_path(anime), notice: "「#{crawl_request.target_label}」をクロールキューへ追加しました"
     end
 
     def bulk_cover_image_resolve

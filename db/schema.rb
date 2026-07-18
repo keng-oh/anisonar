@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_04_100000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_18_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -92,14 +92,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_04_100000) do
   end
 
   create_table "crawl_requests", force: :cascade do |t|
-    t.bigint "anime_id", null: false
+    t.bigint "anime_id"
+    t.bigint "anime_series_id"
     t.datetime "created_at", null: false
     t.string "dify_document_id"
     t.text "error_message"
     t.string "status", default: "pending", null: false
     t.datetime "updated_at", null: false
     t.index ["anime_id"], name: "index_crawl_requests_on_anime_id"
+    t.index ["anime_series_id"], name: "index_crawl_requests_on_anime_series_id"
     t.index ["status"], name: "index_crawl_requests_on_status"
+    t.check_constraint "(anime_id IS NULL) <> (anime_series_id IS NULL)", name: "crawl_requests_exactly_one_target"
   end
 
   create_table "platform_links", force: :cascade do |t|
@@ -186,6 +189,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_04_100000) do
   add_foreign_key "artists", "animes"
   add_foreign_key "artists", "users", column: "created_by_user_id"
   add_foreign_key "artists", "users", column: "updated_by_user_id"
+  add_foreign_key "crawl_requests", "anime_series"
   add_foreign_key "crawl_requests", "animes"
   add_foreign_key "platform_links", "songs"
   add_foreign_key "reviews", "users"

@@ -6,7 +6,7 @@
     <span class="badge badge-outline"><%= @pagy.count %> 件</span>
     <%= button_to "視聴者数上位10件を一括追加", bulk_enqueue_crawl_requests_admin_integrations_path(limit: 10),
           method: :post, class: "btn btn-primary btn-sm",
-          form: { data: { turbo_confirm: "未追加のアニメから視聴者数上位10件をクロールキューに追加します。よろしいですか？" } } %>
+          form: { data: { turbo_confirm: "未追加のアニメから視聴者数上位10件をクロールキューに追加します（シリーズ所属アニメはシリーズ単位でまとめられます）。よろしいですか？" } } %>
   </div>
 </div>
 
@@ -31,7 +31,7 @@
         <table class="table table-zebra table-sm">
           <thead>
             <tr>
-              <th>アニメ</th>
+              <th>対象</th>
               <th>ステータス</th>
               <th>Difyドキュメント</th>
               <th>作成日時</th>
@@ -41,14 +41,20 @@
           <tbody>
             <% @crawl_requests.each do |cr| %>
               <tr>
-                <td><%= link_to cr.anime.title, edit_admin_anime_path(cr.anime), class: "link link-hover" %></td>
+                <td>
+                  <% if cr.anime %>
+                    <%= link_to cr.anime.title, edit_admin_anime_path(cr.anime), class: "link link-hover" %>
+                  <% else %>
+                    <span class="badge badge-outline badge-sm mr-1">シリーズ</span><%= cr.anime_series.name %>
+                  <% end %>
+                </td>
                 <td><span class="badge badge-sm"><%= cr.status %></span></td>
                 <td class="text-xs"><%= cr.dify_document_id %></td>
                 <td class="text-xs"><%= cr.created_at.strftime("%Y-%m-%d %H:%M") %></td>
                 <td class="text-right">
                   <%= button_to "削除", admin_crawl_request_path(cr, status: @status), method: :delete,
                         class: "btn btn-ghost btn-xs text-error",
-                        form: { data: { turbo_confirm: "「#{cr.anime.title}」のクロール依頼を削除しますか？" } } %>
+                        form: { data: { turbo_confirm: "「#{cr.target_label}」のクロール依頼を削除しますか？" } } %>
                 </td>
               </tr>
             <% end %>
