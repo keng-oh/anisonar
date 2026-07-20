@@ -1,0 +1,164 @@
+ja:
+  activerecord:
+    models:
+      anime: アニメ
+      anime_series: アニメシリーズ
+      artist: アーティスト
+      song: 楽曲
+      album: アルバム
+      anime_song: アニメ楽曲
+      series_song: シリーズ楽曲
+      crawl_request: クロール依頼
+      review: レビュー
+      user: ユーザー
+      artist_relation: アーティスト関連
+      platform_link: 配信リンク
+      setting: 設定
+    attributes:
+      anime:
+        anime_series: シリーズ
+        anime_series_id: シリーズ
+        annict_id: Annict ID
+        cover_image_url: カバー画像URL
+        media_type: メディア種別
+        official_site_url: 公式サイトURL
+        season: 放送クール
+        series_order: シリーズ内順序
+        status: 放送ステータス
+        title: タイトル
+        title_en: 英語タイトル
+        watchers_count: 視聴者数
+        wikipedia_url: Wikipedia URL
+      anime_series:
+        annict_series_id: Annict シリーズID
+        name: シリーズ名
+        name_en: 英語シリーズ名
+      artist:
+        anime: 所属アニメ
+        anime_id: 所属アニメ
+        artist_type: 種別
+        created_by_user: 作成者
+        created_by_user_id: 作成者
+        image_url: 画像URL
+        name: アーティスト名
+        name_kana: アーティスト名（カナ）
+        normalized_name: 正規化済みアーティスト名
+        normalized_name_kana: 正規化済みアーティスト名（カナ）
+        spotify_artist_id: Spotify アーティストID
+        updated_by_user: 更新者
+        updated_by_user_id: 更新者
+      song:
+        album: アルバム
+        album_id: アルバム
+        artist: アーティスト
+        artist_id: アーティスト
+        created_by_user: 作成者
+        created_by_user_id: 作成者
+        notes: メモ
+        title: タイトル
+        updated_by_user: 更新者
+        updated_by_user_id: 更新者
+      album:
+        image_url: 画像URL
+        name: アルバム名
+        release_date: リリース日
+        spotify_album_id: Spotify アルバムID
+      anime_song:
+        anime: アニメ
+        anime_id: アニメ
+        song: 楽曲
+        song_id: 楽曲
+        song_type: 楽曲種別
+      series_song:
+        anime_series: シリーズ
+        anime_series_id: シリーズ
+        song: 楽曲
+        song_id: 楽曲
+        song_type: 楽曲種別
+      crawl_request:
+        anime: アニメ
+        anime_id: アニメ
+        anime_series: シリーズ
+        anime_series_id: シリーズ
+        dify_document_id: Dify ドキュメントID
+        error_message: エラーメッセージ
+        status: ステータス
+      review:
+        action: アクション
+        comment: コメント
+        reviewable: レビュー対象
+        reviewable_id: レビュー対象ID
+        reviewable_type: レビュー対象種別
+        user: ユーザー
+        user_id: ユーザー
+        weight: 重み
+      user:
+        confirmation_sent_at: 認証メール送信日時
+        confirmation_token: 認証トークン
+        confirmed_at: 認証日時
+        email: メールアドレス
+        encrypted_password: 暗号化パスワード
+        remember_created_at: ログイン保持開始日時
+        reset_password_sent_at: パスワード再設定送信日時
+        reset_password_token: パスワード再設定トークン
+        role: 権限
+        unconfirmed_email: 未認証メールアドレス
+      artist_relation:
+        from_artist: 元アーティスト
+        from_artist_id: 元アーティスト
+        relation_type: 関連種別
+        to_artist: 先アーティスト
+        to_artist_id: 先アーティスト
+      platform_link:
+        platform: 配信プラットフォーム
+        platform_track_id: 配信トラックID
+        song: 楽曲
+        song_id: 楽曲
+      setting:
+        key: キー
+        value: 値
+
+  enums:
+    song_type:
+      op: OP
+      ed: ED
+      insert: 挿入歌
+      image: イメージソング
+      soundtrack: サウンドトラック
+      other: その他
+    artist_type:
+      person: 個人
+      unit: グループ
+      character: キャラクター
+    anime_media_type:
+      tv: TV
+      movie: 劇場版
+      ova: OVA
+      ona: ONA
+      special: スペシャル
+    anime_status:
+      airing: 放送中
+      finished: 放送終了
+    crawl_request_status:
+      pending: 未着手
+      crawling: クロール中
+      crawled: クロール完了
+      extracting: 抽出中
+      done: 完了
+      failed: 失敗
+    review_action:
+      approve: 承認
+      reject: 却下
+      flag: 要確認
+    user_role:
+      general: 一般
+      reviewer: レビュアー
+      admin: 管理者
+      ai: AI
+    artist_relation_type:
+      member_of: 所属
+      voice_of: 声優担当
+    platform:
+      spotify: Spotify
+      amazon_music: Amazon Music
+      apple_music: Apple Music

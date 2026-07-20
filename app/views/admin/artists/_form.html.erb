@@ -27,7 +27,7 @@
       <div class="form-control">
         <label class="label"><span class="label-text">種別 <span class="text-error">*</span></span></label>
         <%= f.select :artist_type,
-              Artist.artist_types.keys.map { |t| [ t, t ] },
+              Artist.artist_types.keys.map { |t| [ artist_type_label(t), t ] },
               {},
               class: "select select-bordered w-full", "x-model": "artistType" %>
       </div>
