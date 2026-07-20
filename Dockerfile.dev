@@ -3,16 +3,20 @@ FROM ruby:3.4.9-slim-bookworm
 
 ARG NODE_VERSION=22
 
+# postgresql-client-16: pg_dump/pg_restore はサーバー（postgres:16）と同じメジャーバージョン以上が必要なため、
+# ディストリ標準（bookworm=15）ではなくPGDGリポジトリから16を固定で入れる
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     gnupg \
     build-essential \
     libpq-dev \
     libyaml-dev \
-    postgresql-client \
     git \
+    && install -d /usr/share/postgresql-common/pgdg \
+    && curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+    && echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] http://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
     && curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - \
-    && apt-get install -y --no-install-recommends nodejs \
+    && apt-get update && apt-get install -y --no-install-recommends nodejs postgresql-client-16 \
     && npm install -g yarn \
     && rm -rf /var/lib/apt/lists/*
 

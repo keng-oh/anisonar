@@ -1,7 +1,12 @@
 x-app: &app
   image: ${IMAGE:-ghcr.io/keng-oh/anisonar:latest}
   restart: unless-stopped
+  volumes:
+    # DbDumpJob（毎日04:00）の出力先。runnerのworkspace内はcheckoutで消えるため絶対パスにする。
+    # 初回のみホスト側で: sudo mkdir -p /var/lib/anisonar/dumps && sudo chown 1000:1000 /var/lib/anisonar/dumps
+    - /var/lib/anisonar/dumps:/rails/tmp/dumps
   environment:
+    TZ: Asia/Tokyo
     RAILS_ENV: production
     RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
     APP_HOST: ${APP_HOST}

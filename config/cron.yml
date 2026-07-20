@@ -12,3 +12,9 @@ cover_image_bulk_resolve:
   class: CoverImageBulkResolveJob
   cron: "30 6 * * *"
   queue: default
+
+# コンテナはTZ=Asia/Tokyoのため、cronはJSTで解釈される（db_dumpの明示は冗長だが安全のため残す）
+db_dump:
+  class: DbDumpJob
+  cron: "0 4 * * * Asia/Tokyo"
+  queue: default
