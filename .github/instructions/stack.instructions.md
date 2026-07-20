@@ -22,7 +22,6 @@ applyTo: '**/*'
 | `solid_cable`               | DB バックド ActionCable（Rails 8 標準）                      |
 | `bullet`                    | N+1 クエリ検出（development のみ）                           |
 | `annotaterb`                | モデル・スキーマのアノテーション自動生成（development のみ） |
-| `kamal`                     | デプロイ                                                     |
 | `thruster`                  | HTTP キャッシュ・圧縮プロキシ                                |
 
 ## Frontend
