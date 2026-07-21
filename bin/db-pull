@@ -1,0 +1,123 @@
+#!/usr/bin/env bash
+#
+# 本番の定時ダンプ（DbDumpJob）をダウンロードしてローカルDBへ反映する
+#
+# 使い方:
+#   bin/db-pull                # 最新の定時ダンプを取得して反映
+#   bin/db-pull --fresh        # 本番でダンプを取り直してから取得して反映
+#   bin/db-pull --file PATH    # 取得をスキップし、手元のダンプファイルを反映
+#
+# 前提:
+#   - 環境変数 ANISONAR_PROD_HOST にTailscale経由でsshできる本番ホストを設定
+#     （例: export ANISONAR_PROD_HOST=root@192.168.1.202）
+#   - ssh agentが複数の鍵を持っていて認証に失敗する場合は ANISONAR_PROD_SSH_KEY で鍵を固定する
+#     （例: export ANISONAR_PROD_SSH_KEY=~/.ssh/anisonar.pub）
+#   - usersテーブルのデータはダンプ時点で除外されている（個人情報保護）ため、
+#     反映後のローカルusersにはFK整合用のプレースホルダーのみが入る
+
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+REMOTE_DIR="/var/lib/anisonar/dumps"
+LOCAL_DIR="tmp/dumps"
+LOCAL_DB="anisonar_development"
+DB_USER="anisonar"
+
+ssh_opts=()
+if [ -n "${ANISONAR_PROD_SSH_KEY:-}" ]; then
+  ssh_opts=(-o IdentitiesOnly=yes -i "$ANISONAR_PROD_SSH_KEY")
+fi
+
+psql_local() {
+  docker compose exec -T db psql -U "$DB_USER" -d "$LOCAL_DB" -v ON_ERROR_STOP=1 "$@"
+}
+
+fresh=false
+dump_file=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --fresh) fresh=true ;;
+    --file)
+      shift
+      dump_file="${1:-}"
+      [ -n "$dump_file" ] || { echo "ERROR: --file にはパスを指定してください" >&2; exit 1; }
+      ;;
+    *) echo "ERROR: 不明なオプション: $1" >&2; exit 1 ;;
+  esac
+  shift
+done
+
+if [ -z "$dump_file" ]; then
+  host="${ANISONAR_PROD_HOST:-}"
+  if [ -z "$host" ]; then
+    echo "ERROR: 環境変数 ANISONAR_PROD_HOST を設定してください（例: export ANISONAR_PROD_HOST=keng@anisonar-prod）" >&2
+    exit 1
+  fi
+
+  if [ "$fresh" = true ]; then
+    echo "==> 本番でダンプを取り直しています（db:dump）..."
+    # コンテナ名はcomposeのproject名に依存するため、"-web-1" で終わる稼働中コンテナを探す
+    ssh "${ssh_opts[@]}" "$host" 'docker ps --format "{{.Names}}" | grep -m1 -E -- "-web-1$" | xargs -r -I{} docker exec {} bin/rails db:dump'
+  fi
+
+  latest="$(ssh "${ssh_opts[@]}" "$host" "ls -1 $REMOTE_DIR/anisonar_*.dump 2>/dev/null | sort | tail -n1")"
+  if [ -z "$latest" ]; then
+    echo "ERROR: 本番にダンプが見つかりません（$REMOTE_DIR）" >&2
+    exit 1
+  fi
+
+  mkdir -p "$LOCAL_DIR"
+  if [ ! -w "$LOCAL_DIR" ]; then
+    echo "ERROR: $LOCAL_DIR に書き込めません。devコンテナがroot所有で作成した可能性があります。" >&2
+    echo "       docker compose exec web rm -rf tmp/dumps を実行してから再試行してください" >&2
+    exit 1
+  fi
+  dump_file="$LOCAL_DIR/$(basename "$latest")"
+  echo "==> ダウンロード: $host:$latest"
+  scp "${ssh_opts[@]}" "$host:$latest" "$dump_file"
+fi
+
+[ -f "$dump_file" ] || { echo "ERROR: ダンプファイルがありません: $dump_file" >&2; exit 1; }
+
+echo "==> ローカルDBを初期化: $LOCAL_DB"
+# 接続が残っているとDROPがロック待ちで固まるため先に切断する
+docker compose exec -T db psql -U "$DB_USER" -d postgres -v ON_ERROR_STOP=1 -c \
+  "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$LOCAL_DB' AND pid <> pg_backend_pid();" > /dev/null
+psql_local -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;" > /dev/null
+
+# usersのデータはダンプに含まれないため、一括でrestoreするとusersを参照するFK制約が張れない。
+# スキーマ+データ → 参照されているIDへプレースホルダーuser作成 → 制約・インデックス作成、の順に分けて反映する
+echo "==> スキーマとデータを反映: $dump_file"
+docker compose exec -T db pg_restore --no-owner --no-privileges --section=pre-data --section=data \
+  -U "$DB_USER" -d "$LOCAL_DB" < "$dump_file"
+
+# ダンプのFK定義から「usersを参照しているテーブル・カラム」を抽出する
+fk_refs="$(docker compose exec -T db pg_restore --section=post-data -f - < "$dump_file" \
+  | tr '\n' ' ' \
+  | grep -oE 'ALTER TABLE ONLY [^ ]+ +ADD CONSTRAINT [^ ]+ FOREIGN KEY \([^)]+\) REFERENCES public\.users\(id\)' \
+  | sed -E 's/ALTER TABLE ONLY ([^ ]+) +ADD CONSTRAINT [^ ]+ FOREIGN KEY \(([^)]+)\).*/\1 \2/' || true)"
+
+if [ -n "$fk_refs" ]; then
+  echo "==> usersのプレースホルダーを作成"
+  union=""
+  while read -r tbl col; do
+    union="${union:+$union UNION }SELECT DISTINCT $col AS ref_id FROM $tbl WHERE $col IS NOT NULL"
+  done <<< "$fk_refs"
+  psql_local -c \
+    "INSERT INTO users (id, email, encrypted_password, role, created_at, updated_at)
+       SELECT ref_id, 'user' || ref_id || '@example.test', '', 0, now(), now()
+       FROM ($union) refs
+       WHERE NOT EXISTS (SELECT 1 FROM users u WHERE u.id = refs.ref_id);
+     SELECT setval(pg_get_serial_sequence('users', 'id'), COALESCE((SELECT MAX(id) FROM users), 1));" > /dev/null
+fi
+
+echo "==> 制約・インデックスを作成"
+docker compose exec -T db pg_restore --no-owner --no-privileges --section=post-data \
+  -U "$DB_USER" -d "$LOCAL_DB" < "$dump_file"
+
+# ダンプ由来のar_internal_metadataがproductionのままだとdb:reset等が保護エラーになる
+echo "==> 環境メタデータを修正し、未適用のマイグレーションを反映"
+docker compose exec -T web bin/rails db:environment:set RAILS_ENV=development
+docker compose exec -T web bin/rails db:migrate
+
+echo "==> 完了"

@@ -61,6 +61,11 @@ bin/rails db:reset
 
 # Annictデータ同期
 bin/rails annict:sync
+
+# 本番の定時ダンプをローカルDBへ反映（usersは除外されプレースホルダーに置換）
+export ANISONAR_PROD_HOST=root@<本番ホスト>
+export ANISONAR_PROD_SSH_KEY=~/.ssh/anisonar.pub  # ssh agentの鍵が多くて認証に失敗する場合
+bin/db-pull
 ```
 
 ## ディレクトリ構成
