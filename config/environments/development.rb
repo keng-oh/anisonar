@@ -34,6 +34,15 @@ Rails.application.configure do
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.smtp_settings = { address: "mailhog", port: 1025 }
 
+  # Tailscale経由でn8nなどからローカルのRailsを叩けるようにする。
+  # IPアドレスでの直アクセスはdevelopmentのデフォルトで許可されているが、
+  # DNS名（MagicDNSのホスト名）はconfig.hostsに無いと403になる。
+  # 追加で許可したいホストは .env の ANISONAR_DEV_HOSTS にカンマ区切りで指定する（完全一致）。
+  # MagicDNSの名前は <マシン名>.<テールネット名>.ts.net と2階層あり、".ts.net" 形式の指定では
+  # サブドメイン1階層しかマッチしないため、正規表現で許可する。
+  config.hosts << /\A([a-z0-9-]+\.)+ts\.net\z/i
+  config.hosts.concat(ENV.fetch("ANISONAR_DEV_HOSTS", "").split(",").filter_map { |host| host.strip.presence })
+
   # Print deprecation notices to the Rails logger.
   config.active_support.deprecation = :log
 
