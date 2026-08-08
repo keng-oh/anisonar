@@ -13,7 +13,7 @@ gem "jbuilder"
 # Background jobs
 gem "sidekiq", "~> 8.1"
 gem "sidekiq-cron"
-gem "redis", "~> 5.0"
+gem "redis", "~> 6.0"
 
 # Cache / Cable (DB-backed)
 gem "solid_cache"
