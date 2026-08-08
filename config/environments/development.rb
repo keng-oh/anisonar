@@ -40,7 +40,9 @@ Rails.application.configure do
   # 追加で許可したいホストは .env の ANISONAR_DEV_HOSTS にカンマ区切りで指定する（完全一致）。
   # MagicDNSの名前は <マシン名>.<テールネット名>.ts.net と2階層あり、".ts.net" 形式の指定では
   # サブドメイン1階層しかマッチしないため、正規表現で許可する。
-  config.hosts << /\A([a-z0-9-]+\.)+ts\.net\z/i
+  # Railsは文字列指定にはポートの吸収を自前で足すが、正規表現はそのまま使われるため
+  # Hostヘッダのポート（localhost:3000形式）を (:\d+)? で明示的に許容する必要がある。
+  config.hosts << /\A([a-z0-9-]+\.)+ts\.net(:\d+)?\z/i
   config.hosts.concat(ENV.fetch("ANISONAR_DEV_HOSTS", "").split(",").filter_map { |host| host.strip.presence })
 
   # Print deprecation notices to the Rails logger.
