@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+#
+# n8n VMからローカルのRailsを参照できるよう、SSHリバーストンネルを張る
+#
+# 使い方:
+#   bin/n8n-tunnel        # トンネルを張り、疎通を確認して常駐（Ctrl-Cで終了）
+#
+# 前提:
+#   - n8n VMは root@192.168.1.205、n8nコンテナのDockerブリッジGWは 172.18.0.1 を既定値とする。
+#     変える場合は環境変数 ANISONAR_N8N_HOST / ANISONAR_N8N_DOCKER_GW で上書きする
+#     （GWの確認方法: VM上で
+#      docker inspect -f '{{range .NetworkSettings.Networks}}{{.Gateway}}{{end}}' n8n）
+#   - VMに socat が入っていること（apt install socat）
+#   - n8nワークフローの Set Dev ノードの apiBase を http://<ゲートウェイIP>:3000 にしておく
+#
+# なぜこの形か:
+#   n8n VMのサブネットはopnsenseがサブネットルーターとしてTailscaleに参加させているが、
+#   サブネットルーターは「テールネット→サブネット」の片方向しか通さない。逆向き
+#   （VM→開発マシンの100.x）は経路が無いため、VM側から直接ローカルRailsへは到達できない。
+#   このスクリプトは通る向き（開発マシン→VM）のsshセッションに相乗りして逆向きを作る。
+#
+#   トンネルはVMの127.0.0.1にバインドする。これは sshd の既定設定のまま張れるため、
+#   dotfilesで管理している sshd_config に GatewayPorts を足す必要がない。ただし
+#   コンテナからVMの127.0.0.1は見えないので、socatでDockerブリッジIPへ中継する。
+#   中継プロセスはスクリプト終了時に落とすので、VM側に常設の口は残らない。
+
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+ANISONAR_N8N_HOST="${ANISONAR_N8N_HOST:-root@192.168.1.205}"
+GW="${ANISONAR_N8N_DOCKER_GW:-172.18.0.1}"
+PORT=3000
+
+# 鍵は1PasswordのSSH agent経由。公開鍵を指定してIdentitiesOnlyで絞らないと、
+# agentが鍵を出しすぎて "Too many authentication failures" になる
+SSH_KEY="${ANISONAR_N8N_SSH_KEY:-$HOME/.ssh/proxmox_n8n.pub}"
+ssh_opts=(-o ConnectTimeout=10 -o IdentitiesOnly=yes -i "$SSH_KEY")
+
+remote() { ssh "${ssh_opts[@]}" "$ANISONAR_N8N_HOST" "$@"; }
+
+cleanup() {
+  [ -n "${relay_pid:-}" ] && kill "$relay_pid" 2>/dev/null
+  [ -n "${tunnel_pid:-}" ] && kill "$tunnel_pid" 2>/dev/null
+  # sshが落ちてもVM側のsocatが残る場合があるため明示的に止める
+  remote "pkill -f 'socat TCP-LISTEN:${PORT},bind=${GW}'" 2>/dev/null || true
+  return 0
+}
+trap cleanup EXIT
+
+echo "==> ローカルRailsの起動を確認"
+if ! curl -sf -m 5 -o /dev/null "http://localhost:${PORT}/up"; then
+  echo "ローカルのRailsが localhost:${PORT} で応答しません。'docker compose up -d web worker' を先に実行してください。" >&2
+  exit 1
+fi
+
+echo "==> VMに socat があるか確認"
+if ! remote "command -v socat >/dev/null"; then
+  echo "VMに socat がありません。'apt install socat' を実行してください。" >&2
+  exit 1
+fi
+
+echo "==> トンネルを張る: ${ANISONAR_N8N_HOST} の 127.0.0.1:${PORT} -> localhost:${PORT}"
+ssh -N -R "${PORT}:localhost:${PORT}" \
+  -o ExitOnForwardFailure=yes \
+  -o ServerAliveInterval=30 \
+  "${ssh_opts[@]}" "$ANISONAR_N8N_HOST" &
+tunnel_pid=$!
+
+sleep 2
+if ! kill -0 "$tunnel_pid" 2>/dev/null; then
+  echo "トンネルの確立に失敗しました。VMの127.0.0.1:${PORT}が既に使われていないか確認してください。" >&2
+  exit 1
+fi
+
+echo "==> ${GW}:${PORT} への中継を起動"
+remote "socat TCP-LISTEN:${PORT},bind=${GW},fork,reuseaddr TCP:127.0.0.1:${PORT}" &
+relay_pid=$!
+sleep 1
+
+echo "==> VM側から疎通を確認"
+code=$(remote "curl -s -m 5 -o /dev/null -w '%{http_code}' http://${GW}:${PORT}/up" || echo "000")
+if [ "$code" = "200" ]; then
+  echo "    OK (HTTP ${code})"
+else
+  echo "    NG (HTTP ${code}) — ゲートウェイIPが ${GW} で合っているか確認してください。" >&2
+fi
+
+echo
+echo "n8nの Set Dev を apiBase = 'http://${GW}:${PORT}' にして実行してください。"
+echo "終了する場合は Ctrl-C。"
+wait "$tunnel_pid"
