@@ -14,7 +14,12 @@ module Songs
   #
   # anime_id が無い item は、アニメ単体依頼（anime 指定）ならそのアニメに、
   # シリーズ依頼（anime_series 指定）ならシリーズ共通曲として帰属させる。
+  #
+  # Artist の作成は都度コミットされるため、item 単位で rescue して失敗分だけスキップする。
+  # 途中で例外を投げると、作成済みのアーティストだけが曲に紐づかないまま残るため。
   class ArtistResolver
+    Result = Data.define(:songs_data, :failed)
+
     def self.call(**kwargs)
       new(**kwargs).call
     end
@@ -32,7 +37,17 @@ module Songs
     end
 
     def call
-      @items.map { |item| build_song_data(item) }
+      songs_data = []
+      failed     = []
+
+      @items.each do |item|
+        songs_data << build_song_data(item)
+      rescue => e
+        Rails.logger.warn "[Songs::ArtistResolver] skip item title=#{item[:title]} artist=#{item[:artist_name]} error=#{e.class}: #{e.message}"
+        failed << { item: item, message: "「#{item[:title]}」: アーティストの解決に失敗しました（#{e.message}）" }
+      end
+
+      Result.new(songs_data: songs_data, failed: failed)
     end
 
     private
