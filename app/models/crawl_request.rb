@@ -14,8 +14,11 @@ class CrawlRequest < ApplicationRecord
     anime_series.animes.sort_by { |a| [ a.series_order || Float::INFINITY, a.season.to_s, a.id ] }
   end
 
+  # スキーム・末尾スラッシュの違いで同じページが複数残ると、その分だけ
+  # 探索サブワークフローと scrape が余計に走るため、取得時に寄せる。
+  # アニメ側に登録されている値そのものは影響範囲が広いので変更しない。
   def target_urls
-    target_animes.flat_map { |a| [ a.wikipedia_url, a.official_site_url ] }.compact_blank.uniq
+    UrlDeduplicator.call(target_animes.flat_map { |a| [ a.wikipedia_url, a.official_site_url ] })
   end
 
   def target_label
