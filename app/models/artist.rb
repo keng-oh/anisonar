@@ -19,6 +19,16 @@ class Artist < ApplicationRecord
 
   scope :search, ->(q) { where("name ILIKE :q OR name_kana ILIKE :q", q: "%#{sanitize_sql_like(q)}%") }
 
+  # 取り込みジョブの部分失敗で残った、曲に紐づかないアーティストを抽出する。
+  # 手動で登録したものを巻き込まないよう、AIボットが作成したものだけを対象にする。
+  scope :orphans, -> {
+    where(created_by_user: User.ai_bot)
+      .where.missing(:songs)
+      .where.missing(:from_relations)
+      .where.missing(:to_relations)
+      .where.missing(:reviews)
+  }
+
   private
 
     # 表示値は NameFormatter で整え、照合用のキーは normalized_* に持たせる。

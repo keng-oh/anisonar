@@ -14,17 +14,18 @@ class CrawlSongsImportJob < ApplicationJob
     allowed_anime_ids = crawl_request.target_animes.map(&:id)
     valid_items, invalid_items = items.partition { |item| item[:anime_id].blank? || allowed_anime_ids.include?(item[:anime_id].to_i) }
 
-    songs_data = Songs::ArtistResolver.call(
+    resolved = Songs::ArtistResolver.call(
       items: valid_items,
       anime: crawl_request.anime,
       anime_series: crawl_request.anime_series,
       user: User.ai_bot
     )
-    result = Songs::BulkSaveService.call(songs_data: songs_data, user: User.ai_bot)
+    result = Songs::BulkSaveService.call(songs_data: resolved.songs_data, user: User.ai_bot)
 
     result.saved.each { |song| resolve_spotify_track(song) }
 
     error_messages = result.failed.map { |f| f[:messages].join(", ") } +
+      resolved.failed.map { |f| f[:message] } +
       invalid_items.map { |item| "「#{item[:title]}」: 依頼対象外の anime_id=#{item[:anime_id]}" }
 
     if error_messages.empty?

@@ -11,6 +11,7 @@ on:
           - "annict:sync"
           - "cover_images:revalidate"
           - "deduplication:artists_and_songs"
+          - "artists:cleanup_orphans"
           - "db:dump"
 
 permissions:
