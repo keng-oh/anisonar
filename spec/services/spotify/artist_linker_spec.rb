@@ -42,6 +42,22 @@ RSpec.describe Spotify::ArtistLinker do
     end
   end
 
+  # 本番で起きた誤結合。連名の曲のトラックにはメンバー全員が並び、そのうち1人が検索候補にも出る
+  it "連名のアーティストには、紐づいた曲のトラックからメンバー1人のIDを入れない" do
+    joint = create(:artist, name: "アクア（雨宮天）、めぐみん（高橋李依）、ダクネス（茅野愛衣）")
+    song = Song.create!(title: "ちいさな冒険者", artist: joint)
+    song.platform_links.create!(platform: :spotify, platform_track_id: "t2")
+    aqua = { "id" => "aqua", "name" => "アクア (CV: 雨宮 天)" }
+    allow(client).to receive(:get_track).with("t2").and_return({ "artists" => [ aqua, { "id" => "megumin", "name" => "めぐみん (CV: 高橋李依)" } ] })
+    allow(client).to receive(:search_artist).and_return([ aqua ])
+    allow(client).to receive(:search_track).and_return([ { "name" => "ちいさな冒険者", "artists" => [ aqua ] } ])
+
+    result = described_class.call(artist: joint, client: client)
+
+    expect(result.status).to eq(:not_found)
+    expect(joint.reload.spotify_artist_id).to be_nil
+  end
+
   it "紐づいた曲が無ければアーティスト名の検索と曲の検証で紐づける" do
     allow(client).to receive(:search_artist).and_return([ eir ])
     allow(client).to receive(:search_track).with(%(track:"IGNITE" artist:"Eir Aoi"), limit: 10)

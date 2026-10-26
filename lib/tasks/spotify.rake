@@ -3,7 +3,7 @@ namespace :spotify do
   task link_artists: :environment do
     dry_run = ENV["DRY_RUN"] == "true"
     client = Spotify::Client.new
-    artists = Artist.where(spotify_artist_id: nil).where(id: Song.select(:artist_id)).order(:id)
+    artists = Artist.where(spotify_artist_id: nil).where(id: Song.select(:artist_id))
     counts = Hash.new(0)
 
     puts "Spotify未連携のアーティスト #{artists.count}件#{'（DRY_RUN: 保存しません）' if dry_run}"
@@ -16,6 +16,8 @@ namespace :spotify do
         puts "  紐づけ ##{artist.id} #{artist.name} -> #{sp['name']} (#{sp['id']}, #{result.source})"
       when :conflict
         puts "  重複疑い ##{artist.id} #{artist.name} -> #{sp['name']} は ##{result.conflict.id} #{result.conflict.name} が使用中"
+      when :not_found
+        puts "  見つからない ##{artist.id} #{artist.name}"
       end
     rescue Spotify::Client::Error => e
       counts[:error] += 1
