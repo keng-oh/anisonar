@@ -11,12 +11,15 @@ module Spotify
   # 「LiSA」で検索すると BLACKPINK の「LISA」も名前一致になり、検索順位では後者が上に来ることがある。
   class ArtistMatcher
     CANDIDATE_LIMIT = 5
-    # 連名は単独名義のアーティストに誤結合しやすい（「YOSHIKI feat. HYDE」→ YOSHIKI）。分解は #26 で扱う
-    JOINT_NAME = /\b(feat\.?|ft\.|featuring)\s/i
+    # 連名（「YOSHIKI feat. HYDE」「アクア（雨宮天）、めぐみん（高橋李依）」）は、メンバー1人の
+    # アーティストに誤結合しやすいため、名前が一致する候補しか採用しない。分解は #26 で扱う
+    JOINT_NAME = /\b(feat\.?|ft\.|featuring)\s|[、×]/i
     TRACK_LIMIT = 10 # Search API の limit の上限は 10（2026年2月の仕様変更）
     MAX_TITLES = 3
 
     def self.call(...) = new(...).call
+
+    def self.joint_name?(name) = JOINT_NAME.match?(name.to_s)
 
     # @param titles [Array<String>] そのアーティストの曲名（候補の検証に使う）
     def initialize(name:, titles: [], client: Spotify::Client.new)
@@ -33,7 +36,7 @@ module Spotify
       name_matches = candidates.select { |a| normalize(a["name"]) == normalize(@name) }
       return unique(name_matches) if @titles.empty?
 
-      others = JOINT_NAME.match?(@name) ? [] : candidates - name_matches
+      others = self.class.joint_name?(@name) ? [] : candidates - name_matches
       (name_matches + others).find { |a| has_track?(a) } || unique(name_matches)
     end
 

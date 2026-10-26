@@ -49,6 +49,14 @@ RSpec.describe Spotify::ArtistMatcher do
     expect(match("YOSHIKI feat. HYDE", titles: [ "Red Swan" ])).to be_nil
   end
 
+  it "「、」で並べた連名は、メンバー1人の候補を採用しない" do
+    sayaka = artist("s", "美樹さやか (CV:喜多村英梨)")
+    allow(client).to receive(:search_artist).and_return([ sayaka ])
+    allow(client).to receive(:search_track).and_return([ track("Jump up", sayaka) ])
+
+    expect(match("美樹さやか（喜多村英梨）、佐倉杏子（野中藍）", titles: [ "Jump up" ])).to be_nil
+  end
+
   it "名前が一致しない候補は、その候補の曲として存在すれば採用する（英語名義）" do
     eir = artist("eir", "Eir Aoi")
     allow(client).to receive(:search_artist).and_return([ artist("x", "Someone"), eir ])

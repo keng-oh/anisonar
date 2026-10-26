@@ -38,7 +38,10 @@ module Spotify
 
     private
 
+      # 連名の曲のトラックにはメンバー全員が並び、そのうち1人が検索候補にも出るため、連名には使わない
       def from_linked_tracks
+        return nil if Spotify::ArtistMatcher.joint_name?(@artist.name)
+
         track_ids = PlatformLink.where(platform: :spotify, song_id: @artist.songs.select(:id))
                                 .limit(MAX_TRACKS).pluck(:platform_track_id)
         return nil if track_ids.empty?
