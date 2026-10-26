@@ -12,6 +12,7 @@ on:
           - "cover_images:revalidate"
           - "deduplication:artists_and_songs"
           - "artists:cleanup_orphans"
+          - "spotify:link_artists"
           - "db:dump"
 
 permissions:

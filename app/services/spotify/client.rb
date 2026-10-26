@@ -13,7 +13,8 @@ module Spotify
       @client_secret = client_secret
       @conn = Faraday.new do |f|
         f.response :json
-        f.request :retry, max: 2, interval: 1, backoff_factor: 2
+        # 429 は Retry-After を守って待つ（faraday-retry は retry_statuses の応答で Retry-After を優先する）
+        f.request :retry, max: 2, interval: 1, backoff_factor: 2, retry_statuses: [ 429 ]
         f.options.timeout = 10
       end
     end
