@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(docker compose build:*)",
+      "Bash(docker compose up:*)",
+      "Bash(docker compose down)",
+      "Bash(docker compose ps:*)",
+      "Bash(docker compose logs:*)",
+      "Bash(docker compose run --rm:*)",
+      "Bash(docker compose exec:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git fetch:*)",
+      "Bash(git switch:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push -u origin feat/:*)",
+      "Bash(git push -u origin fix/:*)",
+      "Bash(git push -u origin chore/:*)",
+      "Bash(git push origin feat/:*)",
+      "Bash(git push origin fix/:*)",
+      "Bash(git push origin chore/:*)"
+    ],
+    "deny": [
+      "Bash(git push origin main:*)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git push --tags:*)",
+      "Bash(git push origin v:*)",
+      "Bash(git tag:*)",
+      "Bash(docker compose down -v:*)",
+      "Bash(doppler:*)",
+      "Bash(bin/db-pull:*)",
+      "Read(./.env)"
+    ]
+  }
+}

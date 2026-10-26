@@ -10,7 +10,7 @@
 アニメ作品に紐づく楽曲（OP/ED/挿入歌/イメージソング）を網羅的に管理・検索できるデータベースサービス。
 楽曲データを資産として、Spotifyなどのストリーミングサービスとのプレイリスト連携も提供する。
 
-詳細仕様は [docs/concept.md](docs/concept.md) を参照。
+サービスの構想・ロードマップは [Wiki](https://github.com/keng-oh/anisonar/wiki) を参照。
 
 ## 技術スタック
 
@@ -81,7 +81,4 @@ app/
   models/
   controllers/
   views/
-docs/
-  concept.md                 # サービス仕様書
-  deploy-runner-setup.md     # self-hosted runnerセットアップ手順
 ```
