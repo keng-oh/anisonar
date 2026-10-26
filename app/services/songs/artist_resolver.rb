@@ -34,6 +34,8 @@ module Songs
       @spotify_client = spotify_client
       @resolved_artists = {}
       @spotify_matches = {}
+      @titles_by_artist = items.group_by { |item| normalize(item[:artist_name]) }
+                               .transform_values { |group| group.map { |item| item[:title] } }
     end
 
     def call
@@ -65,9 +67,9 @@ module Songs
       end
 
       # Spotify Artist ID を最優先の重複判定キーとして使う。
-      # Spotifyで完全一致しない場合、またspotify_artist_idで既存Artistが見つからない場合は、
+      # Spotifyで見つからない場合、またspotify_artist_idで既存Artistが見つからない場合は、
       # 必ずローカルの完全一致テキストマッチも確認してから新規作成を判断する
-      # （部分一致フォールバックは無関係なアーティストへの誤結合を招くため使わない）。
+      # （ローカルの部分一致フォールバックは無関係なアーティストへの誤結合を招くため使わない）。
       # 同一バッチ内で同じアーティストに解決された曲は @resolved_artists でキャッシュし、
       # 重複作成・重複Spotify検索を防ぐ。
       def resolve_or_create_artist(name)
@@ -104,9 +106,8 @@ module Songs
       def fetch_spotify_artist_match(name)
         return nil if name.blank?
 
-        results = @spotify_client.search_artist(name, limit: 5)
-        exact = results.find { |a| normalize(a["name"]) == normalize(name) }
-        exact && { id: exact["id"] }
+        match = Spotify::ArtistMatcher.call(name: name, titles: @titles_by_artist[normalize(name)], client: @spotify_client)
+        match && { id: match["id"] }
       rescue Spotify::Client::Error => e
         Rails.logger.warn "[Songs::ArtistResolver] spotify lookup failed name=#{name} error=#{e.message}"
         nil

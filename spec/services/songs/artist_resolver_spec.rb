@@ -62,5 +62,44 @@ RSpec.describe Songs::ArtistResolver do
 
       expect(result.songs_data.first[:artist_id]).to eq(existing.id)
     end
+
+    context "Spotify側が別名義の場合" do
+      let(:spotify_client) { instance_double(Spotify::Client) }
+      let(:eir) { { "id" => "eir", "name" => "Eir Aoi" } }
+
+      before do
+        allow(spotify_client).to receive(:search_artist).with("藍井エイル", limit: 5).and_return([ eir ])
+        allow(spotify_client).to receive(:search_track).and_return([])
+      end
+
+      it "同じ依頼で取り込む曲がその候補の曲として存在すれば、Spotify IDを付けて作成する" do
+        allow(spotify_client).to receive(:search_track).with(%(track:"INNOCENCE" artist:"Eir Aoi"), limit: 10)
+          .and_return([ { "name" => "INNOCENCE", "artists" => [ eir ] } ])
+
+        result = resolve([
+          { title: "IGNITE", artist_name: "藍井エイル", song_type: "op" },
+          { title: "INNOCENCE", artist_name: "藍井エイル", song_type: "ed" }
+        ])
+
+        artist = Artist.find(result.songs_data.first[:artist_id])
+        expect(artist.spotify_artist_id).to eq("eir")
+        expect(result.songs_data.map { |d| d[:artist_id] }.uniq).to eq([ artist.id ])
+      end
+
+      it "既に同じSpotify IDのアーティストがいれば、名前が違ってもそれを再利用する" do
+        existing = create(:artist, name: "Eir Aoi", spotify_artist_id: "eir")
+        allow(spotify_client).to receive(:search_track).and_return([ { "name" => "IGNITE", "artists" => [ eir ] } ])
+
+        result = resolve([ { title: "IGNITE", artist_name: "藍井エイル", song_type: "op" } ])
+
+        expect(result.songs_data.first[:artist_id]).to eq(existing.id)
+      end
+
+      it "曲で裏付けが取れなければSpotify IDを付けない" do
+        result = resolve([ { title: "IGNITE", artist_name: "藍井エイル", song_type: "op" } ])
+
+        expect(Artist.find(result.songs_data.first[:artist_id]).spotify_artist_id).to be_nil
+      end
+    end
   end
 end
