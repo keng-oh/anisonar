@@ -1,7 +1,22 @@
 # CLAUDE.md — Anisonar
 
 アニメ作品に紐づく楽曲（OP/ED/挿入歌/イメージソング）を管理・検索するデータベースサービス。
-仕様・DB スキーマは [docs/concept.md](docs/concept.md)。
+MVP の目的は「アニメから関連楽曲を調べて Spotify で聴ける」体験。
+
+## ドメイン
+
+- アニメ（`animes`）とシリーズ（`anime_series`）は Annict から同期する
+- 楽曲（`songs`）はアニメ（`anime_songs`）またはシリーズ（`series_songs`）に、種別（OP / ED / 挿入歌 ...）付きで紐づく
+- アーティスト（`artists`）は person / unit / character の 3 種。`artist_relations` で
+  「声優 → キャラクター（voice_of）」「声優 → ユニット（member_of）」を表す
+- 楽曲は AI（Claude + Firecrawl）が収集し、n8n 経由のクロールキュー（`crawl_requests`）で取り込む。
+  AI が作ったデータは AI ボット用ユーザーの作成として記録する
+- 配信サービスへのリンクは `platform_links`、アルバムは `albums`（Spotify）
+
+**最新のデータ構造は `db/schema.rb` が正。** サービスの構想・ロードマップは GitHub Wiki にある
+（`git clone https://github.com/keng-oh/anisonar.wiki.git`、Concept / Roadmap ページ）。
+構想は実装と異なる部分があるので、食い違ったらコードと schema を優先する。
+個別の作業の仕様は GitHub Issue の本文に書く。
 
 ## 技術スタック
 
