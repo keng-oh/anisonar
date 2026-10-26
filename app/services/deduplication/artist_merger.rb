@@ -20,7 +20,6 @@ module Deduplication
       def merge_artist(dup, into:)
         Song.where(artist_id: dup.id).update_all(artist_id: into.id)
         reassign_artist_relations(dup, into)
-        reassign_reviews(dup, into)
         dup.destroy!
       end
 
@@ -36,14 +35,6 @@ module Deduplication
         rel.save!
       rescue ActiveRecord::RecordInvalid
         rel.destroy!
-      end
-
-      def reassign_reviews(dup, into)
-        Review.where(reviewable_type: "Artist", reviewable_id: dup.id).find_each do |review|
-          review.update!(reviewable_id: into.id)
-        rescue ActiveRecord::RecordInvalid
-          review.destroy!
-        end
       end
   end
 end

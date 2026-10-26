@@ -21,7 +21,6 @@ module Deduplication
         reassign(AnimeSong.where(song_id: dup.id), song_id: into.id)
         reassign(SeriesSong.where(song_id: dup.id), song_id: into.id)
         reassign(PlatformLink.where(song_id: dup.id), song_id: into.id)
-        reassign_reviews(dup, into)
         dup.destroy!
       end
 
@@ -30,14 +29,6 @@ module Deduplication
           record.update!(attrs)
         rescue ActiveRecord::RecordInvalid
           record.destroy!
-        end
-      end
-
-      def reassign_reviews(dup, into)
-        Review.where(reviewable_type: "Song", reviewable_id: dup.id).find_each do |review|
-          review.update!(reviewable_id: into.id)
-        rescue ActiveRecord::RecordInvalid
-          review.destroy!
         end
       end
   end
