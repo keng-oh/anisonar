@@ -10,11 +10,43 @@ RSpec.describe Spotify::ArtistMatcher do
   def artist(id, name) = { "id" => id, "name" => name }
   def track(name, *artists) = { "name" => name, "artists" => artists }
 
-  it "正規化名が一致する候補はそのまま採用する（曲の検証はしない）" do
+  it "曲名が無ければ、正規化名が一致する候補をそのまま採用する" do
     allow(client).to receive(:search_artist).with("梶浦由記", limit: 5).and_return([ artist("x", "Other"), artist("k", "梶浦 由記") ])
 
     expect(match("梶浦由記")["id"]).to eq("k")
     expect(client).not_to have_received(:search_track)
+  end
+
+  it "曲で確かめられなくても、名前が一致する候補が1つだけなら採用する" do
+    allow(client).to receive(:search_artist).and_return([ artist("k", "梶浦 由記") ])
+
+    expect(match("梶浦由記", titles: [ "配信されていない曲" ])["id"]).to eq("k")
+  end
+
+  # 実際に「LiSA」の検索結果は BLACKPINK の「LISA」が1位で、正規化すると名前も一致する
+  it "名前が一致する候補が複数あれば、曲で確かめられたほうを採用する" do
+    lisa_bp = artist("bp", "LISA")
+    lisa = artist("lisa", "LiSA")
+    allow(client).to receive(:search_artist).and_return([ lisa_bp, lisa ])
+    allow(client).to receive(:search_track).with(%(track:"紅蓮華" artist:"LiSA"), limit: 10)
+      .and_return([ track("紅蓮華", lisa) ])
+
+    expect(match("LiSA", titles: [ "紅蓮華" ])["id"]).to eq("lisa")
+  end
+
+  it "名前が一致する候補が複数あり、曲で確かめられなければ採用しない" do
+    allow(client).to receive(:search_artist).and_return([ artist("bp", "LISA"), artist("lisa", "LiSA") ])
+
+    expect(match("LiSA", titles: [ "紅蓮華" ])).to be_nil
+    expect(match("LiSA")).to be_nil
+  end
+
+  it "連名は名前が一致しない単独名義の候補を採用しない" do
+    yoshiki = artist("y", "YOSHIKI")
+    allow(client).to receive(:search_artist).and_return([ yoshiki ])
+    allow(client).to receive(:search_track).and_return([ track("Red Swan", yoshiki) ])
+
+    expect(match("YOSHIKI feat. HYDE", titles: [ "Red Swan" ])).to be_nil
   end
 
   it "名前が一致しない候補は、その候補の曲として存在すれば採用する（英語名義）" do

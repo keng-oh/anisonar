@@ -6,8 +6,13 @@ module Spotify
   # 検索自体は別名を引けるため候補には出てくるが、名前の完全一致では採用できない。
   # そこで名前が一致しない候補は、そのアーティストの曲が Spotify 上でその候補の曲として
   # 存在するかで確かめる（同名・類似名の別人への誤結合を防ぐため、名前だけでは採用しない）。
+  #
+  # 名前が一致する候補も、曲名が分かっていれば曲で確かめる。正規化で大文字小文字をそろえるため、
+  # 「LiSA」で検索すると BLACKPINK の「LISA」も名前一致になり、検索順位では後者が上に来ることがある。
   class ArtistMatcher
     CANDIDATE_LIMIT = 5
+    # 連名は単独名義のアーティストに誤結合しやすい（「YOSHIKI feat. HYDE」→ YOSHIKI）。分解は #26 で扱う
+    JOINT_NAME = /\b(feat\.?|ft\.|featuring)\s/i
     TRACK_LIMIT = 10 # Search API の limit の上限は 10（2026年2月の仕様変更）
     MAX_TITLES = 3
 
@@ -25,11 +30,19 @@ module Spotify
       return nil if @name.blank?
 
       candidates = @client.search_artist(@name, limit: CANDIDATE_LIMIT)
-      candidates.find { |a| normalize(a["name"]) == normalize(@name) } ||
-        candidates.find { |a| has_track?(a) }
+      name_matches = candidates.select { |a| normalize(a["name"]) == normalize(@name) }
+      return unique(name_matches) if @titles.empty?
+
+      others = JOINT_NAME.match?(@name) ? [] : candidates - name_matches
+      (name_matches + others).find { |a| has_track?(a) } || unique(name_matches)
     end
 
     private
+
+      # 同じ名前の候補が複数あって曲で確かめられないときは、どれとも決めない
+      def unique(candidates)
+        candidates.first if candidates.size == 1
+      end
 
       def has_track?(candidate)
         @titles.any? do |title|
