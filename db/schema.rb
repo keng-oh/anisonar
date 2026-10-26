@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_19_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_26_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -119,20 +119,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_19_000000) do
     t.index ["song_id"], name: "index_platform_links_on_song_id"
   end
 
-  create_table "reviews", force: :cascade do |t|
-    t.integer "action", null: false
-    t.text "comment"
-    t.datetime "created_at", null: false
-    t.bigint "reviewable_id", null: false
-    t.string "reviewable_type", null: false
-    t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
-    t.integer "weight", default: 1, null: false
-    t.index ["reviewable_type", "reviewable_id", "user_id"], name: "index_reviews_on_reviewable_and_user", unique: true
-    t.index ["reviewable_type", "reviewable_id"], name: "index_reviews_on_reviewable"
-    t.index ["user_id"], name: "index_reviews_on_user_id"
-  end
-
   create_table "series_songs", force: :cascade do |t|
     t.bigint "anime_series_id", null: false
     t.datetime "created_at", null: false
@@ -196,7 +182,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_19_000000) do
   add_foreign_key "crawl_requests", "anime_series"
   add_foreign_key "crawl_requests", "animes"
   add_foreign_key "platform_links", "songs"
-  add_foreign_key "reviews", "users"
   add_foreign_key "series_songs", "anime_series"
   add_foreign_key "series_songs", "songs"
   add_foreign_key "songs", "albums"

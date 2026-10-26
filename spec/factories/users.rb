@@ -5,10 +5,6 @@ FactoryBot.define do
     role { :general }
     confirmed_at { Time.current }
 
-    trait :reviewer do
-      role { :reviewer }
-    end
-
     trait :admin do
       role { :admin }
     end

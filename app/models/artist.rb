@@ -3,7 +3,6 @@ class Artist < ApplicationRecord
   has_many :songs, dependent: :restrict_with_error
   has_many :from_relations, class_name: "ArtistRelation", foreign_key: :from_artist_id, dependent: :destroy, inverse_of: :from_artist
   has_many :to_relations, class_name: "ArtistRelation", foreign_key: :to_artist_id, dependent: :destroy, inverse_of: :to_artist
-  has_many :reviews, as: :reviewable, dependent: :destroy
 
   enum :artist_type, { person: 0, unit: 1, character: 2 }
 
@@ -26,7 +25,6 @@ class Artist < ApplicationRecord
       .where.missing(:songs)
       .where.missing(:from_relations)
       .where.missing(:to_relations)
-      .where.missing(:reviews)
   }
 
   private

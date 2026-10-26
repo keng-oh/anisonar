@@ -9,7 +9,6 @@ ja:
       anime_song: アニメ楽曲
       series_song: シリーズ楽曲
       crawl_request: クロール依頼
-      review: レビュー
       user: ユーザー
       artist_relation: アーティスト関連
       platform_link: 配信リンク
@@ -83,15 +82,6 @@ ja:
         dify_document_id: Dify ドキュメントID
         error_message: エラーメッセージ
         status: ステータス
-      review:
-        action: アクション
-        comment: コメント
-        reviewable: レビュー対象
-        reviewable_id: レビュー対象ID
-        reviewable_type: レビュー対象種別
-        user: ユーザー
-        user_id: ユーザー
-        weight: 重み
       user:
         confirmation_sent_at: 認証メール送信日時
         confirmation_token: 認証トークン
@@ -146,13 +136,8 @@ ja:
       extracting: 抽出中
       done: 完了
       failed: 失敗
-    review_action:
-      approve: 承認
-      reject: 却下
-      flag: 要確認
     user_role:
       general: 一般
-      reviewer: レビュアー
       admin: 管理者
       ai: AI
     artist_relation_type:

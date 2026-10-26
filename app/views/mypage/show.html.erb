@@ -15,10 +15,6 @@
           <span class="badge badge-outline"><%= @user.role_label %></span>
         </div>
         <div class="flex justify-between items-center">
-          <span class="text-sm text-base-content/60">レビューの重み</span>
-          <span class="font-medium"><%= @user.review_weight %>票</span>
-        </div>
-        <div class="flex justify-between items-center">
           <span class="text-sm text-base-content/60">登録日</span>
           <span class="font-medium"><%= @user.created_at.strftime("%Y年%m月%d日") %></span>
         </div>
