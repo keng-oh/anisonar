@@ -78,15 +78,16 @@ docker compose run --rm --no-deps web bin/bundler-audit
 
 ## Git・デプロイ
 
-- 作業は main から切った feature ブランチ（`feat/...`, `fix/...`, `chore/...`）で行い、push まで。
-  **PR はユーザーが作る**（頼まれたときだけ作る）
+- 作業は main から切った feature ブランチ（`feat/...`, `fix/...`, `chore/...`）で行い、push まで
+- **Issue・PR の作成や更新（本文の編集・コメント・クローズを含む）は、先に文面を見せてユーザーの承認を得てから**
+  `gh` で書き込む。承認なしに GitHub へ書き込まない
 - main は ruleset で保護されている（PR 必須、CI: test / lint / scan_ruby 必須）
 - **本番デプロイは `v*.*.*` タグの push で走る**（`.github/workflows/deploy.yml`、self-hosted runner）。
   main への merge では本番は変わらない。**タグを作成・push しない**
 - 本番の環境変数は Doppler で管理し、デプロイ時に `doppler run` で注入される
 - 本番で rake タスクを流すのは `.github/workflows/rake_task.yml`（手動実行）。直接本番に入らない
 - コミットメッセージは Conventional Commits 風（`feat:` / `fix:` / `build(deps):` ...）、本文は日本語でよい
-- PR 本文は `.github/pull_request_template.md` の形式
+- PR 本文は `.github/pull_request_template.md` の形式、Issue は `.github/ISSUE_TEMPLATE/` の形式
 
 ## 外部連携
 
