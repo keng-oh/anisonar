@@ -50,8 +50,10 @@ module Spotify
         end
       end
 
+      # 連名のアーティストには補完しない。部分一致でメンバー1人の ID が入ってしまうため（#26 で扱う）
       def backfill_artist_spotify_id(track)
         return if @song.artist.spotify_artist_id.present?
+        return if Spotify::ArtistMatcher.joint_name?(@song.artist.name)
 
         normalized = normalize(@song.artist.name)
         matched = track["artists"].find { |a| normalize(a["name"]) == normalized } ||
