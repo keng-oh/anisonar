@@ -8,6 +8,12 @@ class SpotifyTrackBulkResolveJob < ApplicationJob
   INTERVAL = 2.seconds
 
   def perform
+    # レート制限中に積んでも全部失敗するだけなので、次の回まで待つ
+    if Spotify::Client.rate_limited_until
+      Rails.logger.info "[SpotifyTrackBulkResolveJob] skipped: Spotify is rate limited"
+      return
+    end
+
     songs = Song.spotify_untried.order(:id).limit(BATCH_SIZE).to_a
     if songs.size < BATCH_SIZE
       due = Song.spotify_not_found.where(id: PlatformLinkAttempt.spotify.due.select(:song_id))
