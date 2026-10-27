@@ -59,7 +59,9 @@ module Spotify
         members = @song.artist.credit_members.where.not(spotify_artist_id: nil).to_a
         return nil if members.empty?
 
-        query = %(track:"#{@song.title}" artist:"#{members.first.name}")
+        # artist:"…" で絞ると、Spotify 側の表記（「アクア (CV: 雨宮 天)」）と違う名前では0件になるため、
+        # 条件を付けずに検索し、メンバーの ID で確かめる
+        query = "#{@song.title} #{members.first.name}"
         @client.search_track(query, limit: Spotify::ArtistMatcher::TRACK_LIMIT).find do |t|
           track_artist_ids = t["artists"].map { |a| a["id"] }
           members.all? { |m| track_artist_ids.include?(m.spotify_artist_id) } &&

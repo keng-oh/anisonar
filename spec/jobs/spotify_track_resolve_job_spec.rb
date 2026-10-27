@@ -50,4 +50,18 @@ RSpec.describe SpotifyTrackResolveJob do
   it "曲が削除されていれば何もしない" do
     expect { described_class.perform_now(0) }.not_to raise_error
   end
+
+  it "連名の形の名前なら、照合の前にトラックからメンバーへ分解する" do
+    create(:user, email: User::AI_USER_EMAIL, role: :ai)
+    joint = create(:artist, name: "鈴木このみ feat. Ashnikko")
+    joint_song = Song.create!(title: "Bursty Greedy Spider", artist: joint)
+    joint_track = { "id" => "t9", "name" => "Bursty Greedy Spider",
+                    "artists" => [ { "id" => "konomi", "name" => "鈴木このみ" }, { "id" => "ash", "name" => "Ashnikko" } ] }
+    allow(client).to receive(:search_track).and_return([ joint_track ])
+
+    described_class.perform_now(joint_song.id)
+
+    expect(joint.reload).to be_joint
+    expect(joint_song.reload.spotify_link.platform_track_id).to eq "t9"
+  end
 end
