@@ -2,7 +2,7 @@ class CrawlRequest < ApplicationRecord
   belongs_to :anime, optional: true
   belongs_to :anime_series, optional: true
 
-  enum :status, { pending: "pending", crawling: "crawling", crawled: "crawled", extracting: "extracting", done: "done", failed: "failed" }
+  enum :status, { pending: "pending", crawling: "crawling", done: "done", failed: "failed" }
 
   validate :exactly_one_target
 

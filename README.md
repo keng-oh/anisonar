@@ -19,7 +19,7 @@
 | Backend        | Ruby on Rails（通常モード）        |
 | Database       | PostgreSQL                         |
 | 非同期ジョブ   | Sidekiq                            |
-| Frontend       | Hotwire（Turbo + Stimulus）        |
+| Frontend       | Hotwire（Turbo）+ Alpine.js        |
 | JS             | Alpine.js                          |
 | CSS            | Tailwind CSS v4 + daisyUI v5       |
 | コンポーネント | ViewComponent                      |

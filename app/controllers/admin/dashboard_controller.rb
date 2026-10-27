@@ -15,7 +15,7 @@ module Admin
 
       @crawl_total = CrawlRequest.count
       @crawl_done = CrawlRequest.done.count
-      @crawl_in_progress = CrawlRequest.where(status: %w[pending crawling crawled extracting]).count
+      @crawl_in_progress = CrawlRequest.where(status: %w[pending crawling]).count
     end
   end
 end

@@ -23,16 +23,16 @@ paths:
 ## Annict（`app/services/annict/`）
 
 - GraphQL: `https://api.annict.com/graphql`、`ANNICT_API_TOKEN`
-- 取れるのはアニメ・シリーズ・エピソード。**楽曲情報は含まれない**（楽曲は AI 収集で集める）
+- 取れるのはアニメ・シリーズ・エピソード。**楽曲情報は含まれない**（楽曲は n8n で収集する）
 
 ## AniList（`app/services/anilist/`）
 
 - カバー画像の解決に使う。認証不要
 
-## AI 楽曲収集（`app/services/ai/`, `app/services/songs/ai_researcher.rb`）
+## 楽曲収集（n8n）
 
-- Claude: `Ai::ClaudeClient`（`ANTHROPIC_API_KEY`）
-- Firecrawl（セルフホスト）: `Ai::FirecrawlClient`（`FIRECRAWL_URL`, `FIRECRAWL_API_KEY`）
+- 楽曲の収集（Wikipedia の取得・LLM での抽出・Firecrawl での検索）は n8n のワークフローで行う。Rails は
+  クロールキューと取り込み（`CrawlSongsImportJob`）だけを持ち、LLM や Firecrawl を直接呼ばない
 - AI が作ったデータは AI ボット用ユーザー（`User::AI_USER_EMAIL`、role: ai）の作成として記録する
   （`created_by_user_id`）
 

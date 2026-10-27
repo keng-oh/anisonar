@@ -9,7 +9,7 @@ MVP の目的は「アニメから関連楽曲を調べて Spotify で聴ける�
 - 楽曲（`songs`）はアニメ（`anime_songs`）またはシリーズ（`series_songs`）に、種別（OP / ED / 挿入歌 ...）付きで紐づく
 - アーティスト（`artists`）は person / unit / character の 3 種。`artist_relations` で
   「声優 → キャラクター（voice_of）」「声優 → ユニット（member_of）」を表す
-- 楽曲は AI（Claude + Firecrawl）が収集し、n8n 経由のクロールキュー（`crawl_requests`）で取り込む。
+- 楽曲は n8n のワークフローが収集し（Wikipedia を前処理して LLM で抽出）、クロールキュー（`crawl_requests`）経由で取り込む。
   AI が作ったデータは AI ボット用ユーザーの作成として記録する
 - 配信サービスへのリンクは `platform_links`、アルバムは `albums`（Spotify）
 
@@ -30,7 +30,7 @@ MVP の目的は「アニメから関連楽曲を調べて Spotify で聴ける�
 
 ```text
 app/
-  services/<domain>/   # 外部連携・業務ロジック（Annict, AniList, Spotify, AI, Songs, Deduplication, Notifications ...）
+  services/<domain>/   # 外部連携・業務ロジック（Annict, AniList, Spotify, Songs, Artists, Deduplication, Notifications ...）
   lib/                 # 状態を持たないユーティリティ（NameNormalizer, UrlDeduplicator ...）
   jobs/                # Sidekiq ジョブ（XxxJob）
   controllers/admin/   # 管理画面
@@ -96,8 +96,6 @@ docker compose run --rm --no-deps web bin/bundler-audit
 | Annict（GraphQL） | `app/services/annict/` | `ANNICT_API_TOKEN` |
 | AniList（カバー画像） | `app/services/anilist/` | なし |
 | Spotify | `app/services/spotify/` | `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET` |
-| Claude（AI 楽曲収集） | `app/services/ai/claude_client.rb` | `ANTHROPIC_API_KEY` |
-| Firecrawl（セルフホスト） | `app/services/ai/firecrawl_client.rb` | `FIRECRAWL_URL`, `FIRECRAWL_API_KEY` |
 | n8n（クロールキュー） | `app/controllers/api/n8n/` | `N8N_API_TOKEN` |
 | 通知（ntfy / Discord） | `app/services/notifications/` | `NTFY_URL`, `DISCORD_WEBHOOK_URL` 等 |
 | メール（Resend） | `config/initializers/resend.rb`（本番の delivery_method） | `RESEND_API_KEY` |

@@ -6,9 +6,7 @@ gem "pg", "~> 1.1"
 gem "puma", ">= 5.0"
 gem "jsbundling-rails"
 gem "turbo-rails"
-gem "stimulus-rails"
 gem "cssbundling-rails"
-gem "jbuilder"
 
 # Background jobs
 gem "sidekiq", "~> 8.1"
@@ -18,9 +16,6 @@ gem "redis", "~> 6.0"
 # Cache / Cable (DB-backed)
 gem "solid_cache"
 gem "solid_cable"
-
-# Components & UI
-gem "view_component"
 
 # ページネーション
 gem "pagy"
@@ -58,7 +53,6 @@ group :development do
 end
 
 group :test do
-  gem "vcr"
   gem "webmock"
   gem "shoulda-matchers", require: "shoulda/matchers"
 end

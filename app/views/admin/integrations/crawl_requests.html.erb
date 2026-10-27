@@ -18,8 +18,7 @@
 
     <%= form_with url: crawl_requests_admin_integrations_path, method: :get, class: "mb-4 flex flex-wrap gap-2 items-end" do |f| %>
       <%= f.select :status,
-            [ [ "未処理", "pending" ], [ "クロール中", "crawling" ], [ "クロール済み", "crawled" ],
-              [ "抽出中", "extracting" ], [ "完了", "done" ], [ "失敗", "failed" ], [ "全て", "all" ] ],
+            [ [ "未処理", "pending" ], [ "クロール中", "crawling" ], [ "完了", "done" ], [ "失敗", "failed" ], [ "全て", "all" ] ],
             { selected: @status },
             class: "select select-bordered" %>
 
@@ -33,7 +32,7 @@
             <tr>
               <th>対象</th>
               <th>ステータス</th>
-              <th>Difyドキュメント</th>
+              <th>エラー</th>
               <th>作成日時</th>
               <th></th>
             </tr>
@@ -49,7 +48,7 @@
                   <% end %>
                 </td>
                 <td><span class="badge badge-sm"><%= cr.status %></span></td>
-                <td class="text-xs"><%= cr.dify_document_id %></td>
+                <td class="text-xs max-w-md whitespace-pre-wrap break-words"><%= cr.error_message %></td>
                 <td class="text-xs"><%= cr.created_at.strftime("%Y-%m-%d %H:%M") %></td>
                 <td class="text-right">
                   <%= button_to "削除", admin_crawl_request_path(cr, status: @status), method: :delete,
