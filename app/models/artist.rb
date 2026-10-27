@@ -25,7 +25,8 @@ class Artist < ApplicationRecord
   validates :spotify_artist_id, absence: { message: :joint_artist }, if: :joint?
 
   scope :search, ->(q) { where("name ILIKE :q OR name_kana ILIKE :q", q: "%#{sanitize_sql_like(q)}%") }
-  scope :unsplit_joint_candidates, -> { where.not(artist_type: :joint).where("name ~* ?", JointNameSplitter::SQL_PATTERN) }
+  # ユニット（「MYTH & ROID」など、名前に区切りを含むが連名ではないもの）は、種別をユニットにすれば外れる
+  scope :unsplit_joint_candidates, -> { where.not(artist_type: [ :joint, :unit ]).where("name ~* ?", JointNameSplitter::SQL_PATTERN) }
 
   # 取り込みジョブの部分失敗で残った、曲に紐づかないアーティストを抽出する。
   # 手動で登録したものを巻き込まないよう、AIボットが作成したものだけを対象にする。

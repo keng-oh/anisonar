@@ -112,13 +112,27 @@ module Artists
       end
 
       def existing_member(text, track_artist)
-        Artist.where.not(id: @artist.id).find_by(spotify_artist_id: track_artist["id"]) ||
-          Artist.where.not(id: @artist.id).find_by(normalized_name: NameNormalizer.call(text))
+        by_id = member_candidates.find_by(spotify_artist_id: track_artist["id"])
+        return by_id if by_id && !mislinked_joint?(by_id, text)
+
+        member_candidates.find_by(normalized_name: NameNormalizer.call(text))
+      end
+
+      def member_candidates
+        Artist.where.not(id: @artist.id).where.not(artist_type: :joint)
+      end
+
+      # 名前が連名の形（「HYDE × MY FIRST STORY」）で断片（「HYDE」）とも違うのに ID を持つレコードは、
+      # 連名の判定が入る前にメンバー1人の ID を誤って付けられたもの。メンバーとしては使わない
+      def mislinked_joint?(artist, text)
+        JointNameSplitter.call(artist.name).any? && credit_key(artist.name) != credit_key(text)
       end
 
       # @return [Boolean] 保存できたか
       def decompose!(members)
         ApplicationRecord.transaction do
+          # 連名自身がメンバー1人の ID を持っていることがある（#166 など）。先に外さないとメンバーに付けられない
+          @artist.update!(spotify_artist_id: nil) if @artist.spotify_artist_id.present?
           artists = members.map { |m| member_artist!(m) }
           result = Artists::JointDecomposer.call(artist: @artist, members: artists.map { |a| { artist_id: a.id } }, user: User.ai_bot)
           unless result.success?
@@ -134,6 +148,7 @@ module Artists
 
       # 既存のメンバーに Spotify ID が無ければトラックの ID を付ける。無ければ連名の表記の名前で作る
       def member_artist!(member)
+        release_mislinked_id!(member)
         artist = member.artist
         if artist
           artist.update!(spotify_artist_id: member.spotify_artist_id) if artist.spotify_artist_id.blank? && !artist.joint?
@@ -149,6 +164,15 @@ module Artists
           created_by_user:   User.ai_bot,
           updated_by_user:   User.ai_bot
         )
+      end
+
+      # 誤ってメンバーの ID を持っている連名の形のレコードから、その ID を外す（正しいメンバーに付け替えるため）
+      def release_mislinked_id!(member)
+        holder = Artist.where.not(id: member.artist&.id).find_by(spotify_artist_id: member.spotify_artist_id)
+        return unless holder && mislinked_joint?(holder, member.name)
+
+        Rails.logger.info "[Artists::JointAutoDecomposer] released spotify_artist_id=#{member.spotify_artist_id} from artist_id=#{holder.id} (#{holder.name})"
+        holder.update!(spotify_artist_id: nil)
       end
 
       def default_anime_id
