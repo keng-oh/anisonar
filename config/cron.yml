@@ -8,6 +8,12 @@ annict_backfill:
   cron: "0 * * * *"
   queue: annict_sync
 
+# 楽曲取り込みとは別に、Spotify 未連携の曲を照合する（見つからなかった曲は間隔を空けて再照合）
+spotify_track_bulk_resolve:
+  class: SpotifyTrackBulkResolveJob
+  cron: "15 * * * *"
+  queue: default
+
 cover_image_bulk_resolve:
   class: CoverImageBulkResolveJob
   cron: "30 6 * * *"

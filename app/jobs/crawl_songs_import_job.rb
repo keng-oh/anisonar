@@ -20,9 +20,8 @@ class CrawlSongsImportJob < ApplicationJob
       anime_series: crawl_request.anime_series,
       user: User.ai_bot
     )
+    # 曲の Spotify への紐づけはここでは行わず、SpotifyTrackBulkResolveJob が定期的に行う
     result = Songs::BulkSaveService.call(songs_data: resolved.songs_data, user: User.ai_bot)
-
-    result.saved.each { |song| resolve_spotify_track(song) }
 
     error_messages = result.failed.map { |f| f[:messages].join(", ") } +
       resolved.failed.map { |f| f[:message] } +
@@ -37,12 +36,4 @@ class CrawlSongsImportJob < ApplicationJob
     crawl_request&.update!(status: :failed, error_message: "予期しないエラー: #{e.message}")
     raise
   end
-
-  private
-
-    def resolve_spotify_track(song)
-      Spotify::TrackResolver.call(song: song)
-    rescue Spotify::Client::Error => e
-      Rails.logger.warn "[CrawlSongsImportJob] song_id=#{song.id} spotify track resolve failed: #{e.message}"
-    end
 end

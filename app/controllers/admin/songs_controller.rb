@@ -1,9 +1,9 @@
 module Admin
   class SongsController < BaseController
     def all
-      songs = Song.includes(:artist, :album, :platform_links, anime_songs: :anime)
+      songs = Song.includes(:artist, :album, :platform_links, :platform_link_attempts, anime_songs: :anime)
       songs = songs.search(params[:q]) if params[:q].present?
-      songs = songs.left_joins(:platform_links).where(platform_links: { id: nil }) if params[:platform] == "unlinked"
+      songs = PLATFORM_FILTERS.fetch(params[:platform], ->(s) { s }).call(songs)
       songs = songs.order(sort_order)
 
       @pagy, @songs = pagy(:offset, songs, limit: 20)
@@ -76,6 +76,13 @@ module Admin
         "newest" => { created_at: :desc },
         "oldest" => { created_at: :asc },
         "title"  => { title: :asc }
+      }.freeze
+
+      # 「試したが見つからない」は手動で紐づけるべき曲、「未試行」は定期ジョブの順番待ち
+      PLATFORM_FILTERS = {
+        "unlinked"  => ->(songs) { songs.spotify_unlinked },
+        "untried"   => ->(songs) { songs.spotify_untried },
+        "not_found" => ->(songs) { songs.spotify_not_found }
       }.freeze
 
       def sort_order

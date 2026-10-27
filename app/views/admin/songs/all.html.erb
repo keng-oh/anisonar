@@ -16,7 +16,7 @@
         class: "select select-bordered" %>
 
   <%= f.select :platform,
-        [ [ "プラットフォーム連携: 全て", "" ], [ "未連携のみ", "unlinked" ] ],
+        [ [ "Spotify連携: 全て", "" ], [ "未連携のみ", "unlinked" ], [ "未連携: 未試行", "untried" ], [ "未連携: 見つからない", "not_found" ] ],
         { selected: params[:platform] },
         class: "select select-bordered" %>
 
@@ -39,6 +39,7 @@
     <tbody>
       <% @songs.each do |song| %>
         <% spotify_link = song.platform_links.find(&:spotify?) %>
+        <% spotify_attempt = song.platform_link_attempts.find(&:spotify?) %>
         <tr>
           <td>
             <% if song.album_image_url.present? %>
@@ -58,6 +59,8 @@
           <td class="text-sm whitespace-nowrap">
             <% if spotify_link %>
               <span class="badge badge-success badge-sm">連携済み</span>
+            <% elsif spotify_attempt %>
+              <span class="badge badge-warning badge-sm" title="最後に試した日時: <%= spotify_attempt.last_attempted_at.strftime("%Y-%m-%d %H:%M") %>">見つからない（<%= spotify_attempt.attempts_count %>回）</span>
             <% else %>
               <span class="badge badge-ghost badge-sm">未連携</span>
             <% end %>
