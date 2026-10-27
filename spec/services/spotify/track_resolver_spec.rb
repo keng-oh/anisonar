@@ -40,7 +40,7 @@ RSpec.describe Spotify::TrackResolver do
     let(:solo) { { "id" => "t2", "name" => "ちいさな冒険者 (アクア ソロ ver.)", "artists" => [ { "id" => "aqua" } ] } }
 
     it "Spotify ID を持つメンバーの名前で検索し、メンバー全員が並ぶトラックに紐づける" do
-      allow(client).to receive(:search_track).with(%(track:"ちいさな冒険者" artist:"アクア（雨宮天）"), limit: 10).and_return([ solo, both ])
+      allow(client).to receive(:search_track).with("ちいさな冒険者 アクア（雨宮天）", limit: 10).and_return([ solo, both ])
 
       link = described_class.call(song: song, client: client)
 

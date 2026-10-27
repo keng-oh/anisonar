@@ -9,7 +9,8 @@ class SpotifyTrackResolveJob < ApplicationJob
     song = Song.find_by(id: song_id)
     return unless song
 
-    link = Spotify::TrackResolver.call(song: song)
+    decompose_joint(song.artist)
+    link = Spotify::TrackResolver.call(song: song.reload)
 
     if link
       song.platform_link_attempts.spotify.delete_all
@@ -24,6 +25,15 @@ class SpotifyTrackResolveJob < ApplicationJob
   end
 
   private
+
+    # 連名の名前のまま照合しても Spotify には見つからないため、先にトラックからメンバーへ分解する（#78）。
+    # 「&」「,」はユニット名にも含まれ、毎回の照合で無駄に検索しないよう、ここでは確実な区切りの連名だけを扱う
+    # （それ以外は spotify:decompose_joint_artists で一度だけ試す）
+    def decompose_joint(artist)
+      return if artist.joint? || !Spotify::ArtistMatcher.joint_name?(artist.name)
+
+      Artists::JointAutoDecomposer.call(artist: artist)
+    end
 
     def record_not_found(song)
       attempt = song.platform_link_attempts.find_or_initialize_by(platform: :spotify)
