@@ -58,10 +58,11 @@ RSpec.describe Artist, type: :model do
       expect(member.joint_credits).to contain_exactly(joint)
     end
 
-    it "unsplit_joint_candidates は、名前が連名の形でまだ joint でないもの" do
+    it "unsplit_joint_candidates は、名前が連名の形でまだ joint でもユニットでもないもの" do
       unsplit = create(:artist, name: "春奈るな×河野マリナ")
       create(:artist, name: "鈴木このみ feat. Ashnikko", artist_type: :joint)
       create(:artist, name: "fripSide")
+      create(:artist, name: "MYTH & ROID", artist_type: :unit)
 
       expect(described_class.unsplit_joint_candidates).to contain_exactly(unsplit)
     end

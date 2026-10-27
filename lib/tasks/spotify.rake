@@ -37,7 +37,7 @@ namespace :spotify do
     artists.find_each do |artist|
       result = Artists::JointAutoDecomposer.call(artist: artist, dry_run: dry_run, client: client)
       counts[result.status] += 1
-      members = result.members.map { |m| "#{m.name}#{m.artist ? "（既存 ##{m.artist.id}）" : '（新規）'} = #{m.spotify_name}" }.join(" / ")
+      members = result.members.map { |m| "#{m.artist ? "#{m.artist.name}（既存 ##{m.artist.id}）" : "#{m.name}（新規）"} = #{m.spotify_name}" }.join(" / ")
       case result.status
       when :decomposed then puts "  分解 ##{artist.id} #{artist.name} -> #{members}"
       when :failed then puts "  保存失敗 ##{artist.id} #{artist.name} -> #{members}（ログを確認）"

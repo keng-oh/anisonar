@@ -104,4 +104,47 @@ RSpec.describe Artists::JointAutoDecomposer do
     expect(decompose(create(:artist, name: "fripSide")).status).to eq :skipped
     expect(decompose(create(:artist, name: "A feat. B", artist_type: :joint)).status).to eq :skipped
   end
+
+  context "メンバー1人の Spotify ID を、連名の形のレコードが誤って持っている場合（本番の #166〜#169）" do
+    let(:mwam_track) do
+      { "name" => "絆ノ奇跡", "artists" => [ { "id" => "mwam", "name" => "MAN WITH A MISSION" }, { "id" => "milet", "name" => "milet" } ] }
+    end
+
+    it "連名自身が持っている ID は外して、メンバーに付け替える" do
+      joint = create(:artist, name: "MAN WITH A MISSION × milet", spotify_artist_id: "mwam")
+      Song.create!(title: "絆ノ奇跡", artist: joint)
+      allow(client).to receive(:search_track).and_return([ mwam_track ])
+
+      expect(decompose(joint)).to be_decomposed
+      expect(joint.reload.spotify_artist_id).to be_nil
+      expect(Artist.find_by(name: "MAN WITH A MISSION").spotify_artist_id).to eq "mwam"
+    end
+
+    it "別の連名の形のレコードが持っている ID は、そのレコードをメンバーにせず、外して付け替える" do
+      joint = create(:artist, name: "MAN WITH A MISSION × milet")
+      other = create(:artist, name: "milet × MAN WITH A MISSION", spotify_artist_id: "milet")
+      Song.create!(title: "絆ノ奇跡", artist: joint)
+      allow(client).to receive(:search_track).and_return([ mwam_track ])
+
+      result = decompose(joint)
+
+      expect(result).to be_decomposed
+      expect(joint.reload.credit_members).not_to include(other)
+      expect(other.reload.spotify_artist_id).to be_nil
+      expect(Artist.find_by(name: "milet").spotify_artist_id).to eq "milet"
+    end
+
+    it "名前が断片と一致するユニット（MYTH & ROID）が持つ ID は、正しい持ち主としてメンバーにする" do
+      joint = create(:artist, name: "MYTH & ROID feat. TK（凛として時雨）")
+      myth = create(:artist, name: "MYTH & ROID", artist_type: :unit, spotify_artist_id: "myth")
+      Song.create!(title: "曲", artist: joint)
+      allow(client).to receive(:search_track).and_return([
+        { "name" => "曲", "artists" => [ { "id" => "myth", "name" => "MYTH & ROID" }, { "id" => "tk", "name" => "TK（凛として時雨）" } ] }
+      ])
+
+      expect(decompose(joint)).to be_decomposed
+      expect(joint.reload.credit_members).to include(myth)
+      expect(myth.reload.spotify_artist_id).to eq "myth"
+    end
+  end
 end
