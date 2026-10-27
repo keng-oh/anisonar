@@ -40,4 +40,30 @@ RSpec.describe Artist, type: :model do
       expect(described_class.orphans).to be_empty
     end
   end
+
+  describe "連名（joint）" do
+    it "Spotify ID を持てない" do
+      joint = build(:artist, artist_type: :joint, spotify_artist_id: "x")
+
+      expect(joint).not_to be_valid
+      expect(joint.errors[:spotify_artist_id]).to be_present
+    end
+
+    it "credited_in でメンバーと参加した連名をたどれる" do
+      member = create(:artist, name: "鈴木このみ")
+      joint = create(:artist, name: "鈴木このみ feat. Ashnikko", artist_type: :joint)
+      joint.credit_member_relations.create!(from_artist: member)
+
+      expect(joint.credit_members).to contain_exactly(member)
+      expect(member.joint_credits).to contain_exactly(joint)
+    end
+
+    it "unsplit_joint_candidates は、名前が連名の形でまだ joint でないもの" do
+      unsplit = create(:artist, name: "春奈るな×河野マリナ")
+      create(:artist, name: "鈴木このみ feat. Ashnikko", artist_type: :joint)
+      create(:artist, name: "fripSide")
+
+      expect(described_class.unsplit_joint_candidates).to contain_exactly(unsplit)
+    end
+  end
 end

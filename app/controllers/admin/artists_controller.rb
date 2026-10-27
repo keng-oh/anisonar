@@ -5,6 +5,8 @@ module Admin
       artists = artists.search(params[:q]) if params[:q].present?
       artists = artists.where(spotify_artist_id: nil) if params[:spotify] == "unlinked"
       artists = artists.where.not(spotify_artist_id: nil) if params[:spotify] == "linked"
+      artists = artists.joint if params[:joint] == "joint"
+      artists = artists.unsplit_joint_candidates if params[:joint] == "unsplit"
       artists = artists.order(sort_order)
 
       @pagy, @artists = pagy(:offset, artists, limit: 20)
@@ -25,7 +27,7 @@ module Admin
     end
 
     def edit
-      @artist = Artist.find(params[:id])
+      @artist = Artist.includes(:credit_members, :joint_credits).find(params[:id])
     end
 
     def update
@@ -54,8 +56,11 @@ module Admin
       @artist = Artist.find(params[:id])
       attrs = { spotify_artist_id: params[:spotify_artist_id] }
       attrs[:image_url] = params[:image_url] if params[:image_url].present?
-      @artist.update!(attrs)
-      redirect_to edit_admin_artist_path(@artist), notice: "「#{@artist.name}」をSpotifyと連携しました"
+      if @artist.update(attrs)
+        redirect_to edit_admin_artist_path(@artist), notice: "「#{@artist.name}」をSpotifyと連携しました"
+      else
+        redirect_to edit_admin_artist_path(@artist), alert: @artist.errors.full_messages.to_sentence
+      end
     end
 
     private

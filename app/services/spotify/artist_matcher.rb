@@ -21,6 +21,13 @@ module Spotify
 
     def self.joint_name?(name) = JOINT_NAME.match?(name.to_s)
 
+    # Spotify 側は「曲名 - TV size」「曲名 (Anime Ver.)」のように装飾が付くことがあるため、包含で比べる
+    def self.same_title?(spotify_title, title)
+      a = NameNormalizer.call(spotify_title)
+      b = NameNormalizer.call(title)
+      a.present? && b.present? && (a.include?(b) || b.include?(a))
+    end
+
     # @param titles [Array<String>] そのアーティストの曲名（候補の検証に使う）
     def initialize(name:, titles: [], client: Spotify::Client.new)
       @name   = name
@@ -51,16 +58,9 @@ module Spotify
         @titles.any? do |title|
           tracks = @client.search_track(%(track:"#{title}" artist:"#{candidate['name']}"), limit: TRACK_LIMIT)
           tracks.any? do |t|
-            t["artists"].any? { |a| a["id"] == candidate["id"] } && same_title?(t["name"], title)
+            t["artists"].any? { |a| a["id"] == candidate["id"] } && self.class.same_title?(t["name"], title)
           end
         end
-      end
-
-      # Spotify 側は「曲名 - TV size」「曲名 (Anime Ver.)」のように装飾が付くことがあるため、包含で比べる
-      def same_title?(spotify_title, title)
-        a = normalize(spotify_title)
-        b = normalize(title)
-        a.present? && b.present? && (a.include?(b) || b.include?(a))
       end
 
       def normalize(str)

@@ -15,6 +15,11 @@
         { selected: params[:spotify] },
         class: "select select-bordered" %>
 
+  <%= f.select :joint,
+        [ [ "連名: 全て", "" ], [ "連名（分解済み）", "joint" ], [ "連名（未分解）", "unsplit" ] ],
+        { selected: params[:joint] },
+        class: "select select-bordered" %>
+
   <%= f.select :sort,
         [ [ "新しい順", "newest" ], [ "古い順", "oldest" ], [ "名前順", "name" ] ],
         { selected: params[:sort] || "newest" },
