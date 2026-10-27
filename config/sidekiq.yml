@@ -1,6 +1,8 @@
 :concurrency: 5
+# 重み付き（数字が大きいほど優先されやすい）。厳密な優先順にすると、default に Spotify の照合ジョブが
+# 溜まったときに楽曲の取り込み（ai_collection）が後回しになり続けるため
 :queues:
-  - default
-  - annict_sync
-  - ai_collection
-  - mailers
+  - [ai_collection, 4]
+  - [default, 2]
+  - [mailers, 2]
+  - [annict_sync, 1]

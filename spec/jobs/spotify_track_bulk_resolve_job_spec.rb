@@ -34,4 +34,13 @@ RSpec.describe SpotifyTrackBulkResolveJob do
     expect(enqueued).to eq(untried.map(&:id))
     expect(enqueued).not_to include(due.id)
   end
+
+  it "Spotify のレート制限中は何も積まない" do
+    song("未試行")
+    allow(Spotify::Client).to receive(:rate_limited_until).and_return(1.hour.from_now)
+
+    described_class.perform_now
+
+    expect(enqueued_jobs).to be_empty
+  end
 end
