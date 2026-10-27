@@ -21,6 +21,9 @@ module Spotify
 
     # status: :linked / :conflict（そのIDは別のアーティストが使用中。重複レコードの疑い）/ :not_found
     def call
+      # 連名には ID を付けない（メンバーに付ける）
+      return Result.new(status: :not_found, spotify_artist: nil, source: nil, conflict: nil) if @artist.joint?
+
       source = :track
       match = from_linked_tracks
       unless match

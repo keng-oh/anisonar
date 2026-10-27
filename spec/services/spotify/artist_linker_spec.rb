@@ -87,4 +87,13 @@ RSpec.describe Spotify::ArtistLinker do
     expect { expect(link(dry_run: true).status).to eq(:linked) }.not_to have_enqueued_job(SpotifyTrackResolveJob)
     expect(artist.reload.spotify_artist_id).to be_nil
   end
+
+  it "連名（joint）には ID を付けない" do
+    joint = create(:artist, name: "鈴木このみ feat. Ashnikko", artist_type: :joint)
+
+    result = described_class.call(artist: joint, client: client)
+
+    expect(result.status).to eq(:not_found)
+    expect(client).not_to have_received(:search_artist)
+  end
 end

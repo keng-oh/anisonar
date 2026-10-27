@@ -107,6 +107,12 @@ ja:
       setting:
         key: キー
         value: 値
+    errors:
+      models:
+        artist:
+          attributes:
+            spotify_artist_id:
+              joint_artist: は連名のアーティストには付けられません（メンバーのアーティストに付けてください）
 
   enums:
     song_type:
@@ -120,6 +126,7 @@ ja:
       person: 個人
       unit: グループ
       character: キャラクター
+      joint: 連名
     anime_media_type:
       tv: TV
       movie: 劇場版
@@ -143,6 +150,7 @@ ja:
     artist_relation_type:
       member_of: 所属
       voice_of: 声優担当
+      credited_in: 連名に参加
     platform:
       spotify: Spotify
       amazon_music: Amazon Music

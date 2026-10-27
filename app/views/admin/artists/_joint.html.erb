@@ -1,0 +1,44 @@
+<%# 連名（joint）の構成メンバーと、このアーティストが参加した連名 %>
+<% split_candidate = !artist.joint? && JointNameSplitter.call(artist.name).any? %>
+<% if artist.joint? || split_candidate || artist.joint_credits.any? %>
+  <div class="card bg-base-100 shadow-sm mt-4">
+    <div class="card-body gap-3">
+      <% if artist.joint? || split_candidate %>
+        <div class="flex items-center justify-between">
+          <h2 class="card-title text-lg">構成メンバー</h2>
+          <%= link_to (artist.joint? ? "メンバーを編集" : "連名として分解する"), edit_admin_artist_members_path(artist), class: "btn btn-outline btn-sm" %>
+        </div>
+        <% if artist.credit_members.any? %>
+          <ul class="text-sm flex flex-col gap-1">
+            <% artist.credit_members.each do |member| %>
+              <li class="flex items-center gap-2">
+                <%= link_to member.name, edit_admin_artist_path(member), class: "link link-hover" %>
+                <span class="badge badge-ghost badge-xs"><%= artist_type_label(member.artist_type) %></span>
+                <% if member.spotify_artist_id.present? %>
+                  <span class="badge badge-success badge-xs">Spotify</span>
+                <% else %>
+                  <span class="badge badge-ghost badge-xs">Spotify 未連携</span>
+                <% end %>
+              </li>
+            <% end %>
+          </ul>
+          <p class="text-xs text-base-content/50">曲は、Spotify に連携済みのメンバー全員が並ぶトラックに照合します</p>
+        <% else %>
+          <p class="text-sm text-base-content/50">名前が連名の形ですが、まだメンバーに分解していません</p>
+        <% end %>
+      <% end %>
+
+      <% if artist.joint_credits.any? %>
+        <h2 class="card-title text-lg">参加した連名</h2>
+        <ul class="text-sm flex flex-col gap-1">
+          <% artist.joint_credits.each do |joint| %>
+            <li>
+              <%= link_to joint.name, edit_admin_artist_path(joint), class: "link link-hover" %>
+              <span class="text-xs text-base-content/50">（<%= joint.songs.size %>曲）</span>
+            </li>
+          <% end %>
+        </ul>
+      <% end %>
+    </div>
+  </div>
+<% end %>

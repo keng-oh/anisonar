@@ -6,8 +6,19 @@
   <%= render "form", artist: @artist %>
 
   <div class="mt-4">
-    <%= render "spotify_link", artist: @artist %>
+    <% if @artist.joint? %>
+      <div class="card bg-base-100 shadow-sm">
+        <div class="card-body">
+          <h2 class="card-title text-lg">Spotify連携</h2>
+          <p class="text-sm text-base-content/60">連名のアーティストは Spotify に存在しないため連携しません。メンバーのアーティストを連携してください。</p>
+        </div>
+      </div>
+    <% else %>
+      <%= render "spotify_link", artist: @artist %>
+    <% end %>
   </div>
+
+  <%= render "joint", artist: @artist %>
 
   <div class="card bg-base-100 shadow-sm mt-4">
     <div class="card-body gap-3">

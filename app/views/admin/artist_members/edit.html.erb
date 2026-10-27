@@ -1,0 +1,96 @@
+<% content_for :title, "構成メンバーの設定 | 管理画面" %>
+
+<div class="max-w-3xl">
+  <h1 class="text-2xl font-bold mb-2">構成メンバーの設定: <%= @artist.name %></h1>
+  <p class="text-sm text-base-content/60 mb-6">
+    名前の区切り（feat. ・、・× ・& など）から候補を出しています。内容を確認し、違うものは直してから確定してください。
+    確定するとこのアーティストは「連名」になり、Spotify の ID は外れます。曲はメンバーの Spotify ID で照合し直します。
+  </p>
+
+  <% if @artist.spotify_artist_id.present? %>
+    <div role="alert" class="alert alert-warning mb-4 text-sm">
+      Spotify の ID（<%= @artist.spotify_artist_id %>）が付いています。確定すると外れるので、メンバーの誰かの ID であれば、確定後にそのメンバーへ紐づけてください。
+    </div>
+  <% end %>
+
+  <%= form_with url: admin_artist_members_path(@artist), method: :patch,
+        data: { turbo_confirm: "「#{@artist.name}」を連名として確定しますか？" } do %>
+    <div class="card bg-base-100 shadow-sm"
+      x-data="{
+        rows: <%= @rows.to_json %>,
+        add() { this.rows.push({ mode: 'existing', artist_id: null, label: '', name: '', artist_type: 'person', anime_id: null }) },
+        remove(i) { this.rows.splice(i, 1) }
+      }">
+      <div class="card-body gap-4">
+        <h2 class="card-title text-lg">メンバー</h2>
+
+        <template x-for="(row, i) in rows" :key="i">
+          <div class="border border-base-300 rounded-lg p-3 flex flex-col gap-2">
+            <div class="flex items-center gap-2">
+              <select class="select select-bordered select-sm" x-model="row.mode">
+                <option value="existing">既存のアーティスト</option>
+                <option value="new">新しく作る</option>
+              </select>
+              <span class="text-xs text-base-content/50" x-show="row.mode === 'new' && row.name">（同じ名前のアーティストがあればそれを使います）</span>
+              <button type="button" class="btn btn-ghost btn-xs ml-auto" @click="remove(i)">外す</button>
+            </div>
+
+            <%# 行ごとに4つのキーを同じ順で送る（members[][...] は、すでにあるキーが来たところで次の行になるため） %>
+            <input type="hidden" name="members[][artist_id]" :value="row.mode === 'existing' ? (row.artist_id || '') : ''">
+            <input type="hidden" name="members[][name]" :value="row.mode === 'new' ? row.name : ''">
+            <input type="hidden" name="members[][artist_type]" :value="row.mode === 'new' ? row.artist_type : ''">
+            <input type="hidden" name="members[][anime_id]" :value="row.mode === 'new' && row.artist_type === 'character' ? (row.anime_id || '') : ''">
+
+            <div x-show="row.mode === 'existing'" class="relative"
+              x-data="{
+                query: row.label, results: [], open: false, debounce: null,
+                search() {
+                  clearTimeout(this.debounce)
+                  if (!this.query) { this.results = []; this.open = false; return }
+                  this.debounce = setTimeout(() => {
+                    fetch(`/api/admin/artists?q=${encodeURIComponent(this.query)}`, { credentials: 'same-origin' })
+                      .then(r => r.json()).then(data => { this.results = data; this.open = true })
+                  }, 300)
+                },
+                select(item) { row.artist_id = item.id; row.label = item.label; this.query = item.label; this.open = false }
+              }">
+              <input type="text" class="input input-bordered input-sm w-full" placeholder="名前で検索..."
+                x-model="query" @input="row.artist_id = null; search()" @keydown.escape="open = false" autocomplete="off">
+              <p class="text-xs text-error mt-1" x-show="!row.artist_id">一覧から選んでください</p>
+              <div x-show="open" x-cloak @click.outside="open = false"
+                class="absolute top-full left-0 right-0 z-10 mt-1 bg-base-100 border border-base-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                <template x-for="item in results" :key="item.id">
+                  <div @click="select(item)" class="px-4 py-2 cursor-pointer hover:bg-base-200 text-sm" x-text="item.label"></div>
+                </template>
+              </div>
+            </div>
+
+            <div x-show="row.mode === 'new'" class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <input type="text" class="input input-bordered input-sm sm:col-span-2" placeholder="名前" x-model="row.name">
+              <select class="select select-bordered select-sm" x-model="row.artist_type">
+                <% (Artist.artist_types.keys - [ "joint" ]).each do |t| %>
+                  <option value="<%= t %>"><%= artist_type_label(t) %></option>
+                <% end %>
+              </select>
+              <select class="select select-bordered select-sm sm:col-span-3" x-show="row.artist_type === 'character'" x-model="row.anime_id">
+                <option value="">所属アニメを選択（キャラクターは必須）</option>
+                <% @animes.each do |anime| %>
+                  <option value="<%= anime.id %>"><%= anime.title %></option>
+                <% end %>
+              </select>
+            </div>
+          </div>
+        </template>
+
+        <div>
+          <button type="button" class="btn btn-outline btn-sm" @click="add()">メンバーを追加</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-2 mt-4">
+      <%= link_to "キャンセル", edit_admin_artist_path(@artist), class: "btn btn-ghost" %>
+      <%= submit_tag "連名として確定", class: "btn btn-primary" %>
+    </div>
+  <% end %>
+</div>

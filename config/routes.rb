@@ -32,6 +32,7 @@ Rails.application.routes.draw do
       member do
         post :spotify_link
       end
+      resource :members, only: [ :edit, :update ], controller: "artist_members"
     end
     resources :integrations, only: [] do
       collection do
