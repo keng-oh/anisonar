@@ -7,6 +7,7 @@ module Spotify
   #
   # 紐づけたら、まだ Spotify に紐づいていない曲を再照合する（ID が決まると TrackResolver が
   # ID で候補を絞れるようになり、名義の表記違いで落ちていた曲が解決するため）。
+  # 参加した連名（credited_in）の曲も、メンバーの ID で照合するため一緒に再照合する。
   class ArtistLinker
     Result = Data.define(:status, :spotify_artist, :source, :conflict)
     MAX_TRACKS = 3
@@ -74,7 +75,9 @@ module Spotify
         image_url = match.dig("images", 0, "url")
         attrs[:image_url] = image_url if @artist.image_url.blank? && image_url.present?
         @artist.update!(attrs)
-        unlinked = @artist.songs.where.missing(:platform_links)
+        # 参加した連名の曲も、このメンバーの ID で照合できるようになるため照合し直す
+        artist_ids = [ @artist.id, *@artist.joint_credits.ids ]
+        unlinked = Song.where(artist_id: artist_ids).spotify_unlinked
         unlinked.find_each { |song| SpotifyTrackResolveJob.perform_later(song.id) }
       end
   end

@@ -96,4 +96,14 @@ RSpec.describe Spotify::ArtistLinker do
     expect(result.status).to eq(:not_found)
     expect(client).not_to have_received(:search_artist)
   end
+
+  it "紐づけたら、参加した連名の未連携の曲も再照合する" do
+    joint = create(:artist, name: "藍井エイル feat. 誰か", artist_type: :joint)
+    joint.credit_member_relations.create!(from_artist: artist)
+    joint_song = Song.create!(title: "連名の曲", artist: joint)
+    allow(client).to receive(:search_artist).and_return([ eir ])
+    allow(client).to receive(:search_track).and_return([ { "name" => "IGNITE", "artists" => [ { "id" => "eir" } ] } ])
+
+    expect { link }.to have_enqueued_job(SpotifyTrackResolveJob).with(joint_song.id)
+  end
 end
