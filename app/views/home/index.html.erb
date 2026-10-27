@@ -1,0 +1,39 @@
+<% content_for :title, "Anisonar | アニメの主題歌を、ジャケットから" %>
+<% content_for :full_bleed, true %>
+
+<div class="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+  <header class="mb-6 flex flex-wrap items-end justify-between gap-3 border-b border-base-300 pb-4">
+    <div>
+      <p class="mb-1 text-xs font-bold uppercase tracking-[0.2em] text-primary">OP / ED Shelf</p>
+      <h1 class="text-xl font-bold tracking-tight sm:text-3xl">アニメの主題歌を、ジャケットから</h1>
+      <p class="mt-1 text-sm text-base-content/60">人気のアニメ順に、Spotify で聴ける OP・ED を並べています</p>
+    </div>
+    <div class="flex items-center gap-3 text-sm">
+      <span class="text-base-content/50"><%= @pagy.count %> 曲</span>
+      <%= link_to "アニメから探す →", animes_path, class: "btn btn-ghost btn-sm" %>
+    </div>
+  </header>
+
+  <% if @pagy.count.zero? %>
+    <div class="py-20 text-center">
+      <p class="mb-4 text-5xl">💿</p>
+      <p class="text-base-content/60">まだ棚に並べられる曲がありません</p>
+    </div>
+  <% else %>
+    <div class="grid grid-cols-2 gap-x-3 gap-y-5 min-[480px]:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
+      <% @songs.each do |song| %>
+        <%= render "home/shelf_item", song: song %>
+      <% end %>
+    </div>
+
+    <%= render "shared/pagination", pagy: @pagy %>
+  <% end %>
+
+  <footer class="mt-12 border-t border-base-300 pt-6 text-center text-xs text-base-content/40">
+    <p class="flex items-center justify-center gap-1.5">
+      <%= render "home/spotify_icon", css_class: "h-3.5 w-3.5 text-[#1ed760]" %>
+      ジャケット画像と楽曲へのリンクは Spotify のものです
+    </p>
+    <p class="mt-2 opacity-70">© 2026 Anisonar — アニメソングデータベース</p>
+  </footer>
+</div>

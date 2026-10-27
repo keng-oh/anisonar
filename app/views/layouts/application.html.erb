@@ -38,7 +38,7 @@
         <% end %>
       </div>
       <div class="navbar-center hidden lg:flex">
-        <%= form_with url: root_path, method: :get, class: "w-80" do |f| %>
+        <%= form_with url: animes_path, method: :get, class: "w-80" do |f| %>
           <label class="input input-sm input-bordered bg-base-200 flex items-center gap-2 w-full">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" class="opacity-40 shrink-0">
               <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
@@ -57,7 +57,7 @@
             </svg>
           </label>
           <div tabindex="0" class="dropdown-content menu bg-base-100 border border-base-300 rounded-box z-50 mt-3 w-72 p-4 shadow gap-3">
-            <%= form_with url: root_path, method: :get do |f| %>
+            <%= form_with url: animes_path, method: :get do |f| %>
               <label class="input input-sm input-bordered bg-base-200 flex items-center gap-2 w-full">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" class="opacity-40 shrink-0">
                   <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>

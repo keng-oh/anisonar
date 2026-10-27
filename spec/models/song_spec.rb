@@ -23,4 +23,28 @@ RSpec.describe Song, type: :model do
       expect(described_class.spotify_not_found).to contain_exactly(not_found)
     end
   end
+
+  describe "#spotify_url" do
+    let(:song) { Song.create!(title: "曲", artist: create(:artist)) }
+
+    before do
+      song.platform_links.create!(platform: :apple_music, platform_track_id: "apple1")
+      song.platform_links.create!(platform: :spotify, platform_track_id: "spotify1")
+    end
+
+    it "Spotify のトラックの URL を返す" do
+      expect(Song.find(song.id).spotify_url).to eq("https://open.spotify.com/track/spotify1")
+    end
+
+    it "platform_links を読み込み済みならクエリを発行しない" do
+      loaded = Song.includes(:platform_links).find(song.id)
+      queries = []
+      callback = ->(*, payload) { queries << payload[:sql] unless payload[:name] == "SCHEMA" }
+
+      ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+        expect(loaded.spotify_url).to eq("https://open.spotify.com/track/spotify1")
+      end
+      expect(queries).to be_empty
+    end
+  end
 end
