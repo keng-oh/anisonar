@@ -90,4 +90,63 @@ RSpec.describe Songs::ShelfQuery do
       expect(described_class.call.count(:all)).to eq(2)
     end
   end
+
+  describe "放送年" do
+    it "作品の season の年を shelf_year に付ける。season が年だけでも読む" do
+      spring = spotify_song("春の曲")
+      year_only = spotify_song("年だけの曲")
+      no_season = spotify_song("season なしの曲")
+      AnimeSong.create!(anime: anime(30, season: "2020-spring"), song: spring, song_type: :op)
+      AnimeSong.create!(anime: anime(20, season: "2018-"), song: year_only, song_type: :op)
+      AnimeSong.create!(anime: anime(10, season: nil), song: no_season, song_type: :op)
+
+      expect(described_class.call.map { |song| [ song.title, song.shelf_year ] })
+        .to eq([ [ "春の曲", 2020 ], [ "年だけの曲", 2018 ], [ "season なしの曲", nil ] ])
+    end
+
+    it "year: でその年の曲だけを人気順に返す。season の無い作品の曲は出ない" do
+      popular_2020 = spotify_song("2020 の人気曲")
+      minor_2020 = spotify_song("2020 のマイナー曲")
+      song_2021 = spotify_song("2021 の曲")
+      no_season = spotify_song("season なしの曲")
+      AnimeSong.create!(anime: anime(10, season: "2020-winter"), song: minor_2020, song_type: :ed)
+      AnimeSong.create!(anime: anime(900, season: "2020-autumn"), song: popular_2020, song_type: :op)
+      AnimeSong.create!(anime: anime(500, season: "2021-spring"), song: song_2021, song_type: :op)
+      AnimeSong.create!(anime: anime(999, season: nil), song: no_season, song_type: :op)
+
+      expect(described_class.call(year: 2020).to_a).to eq([ popular_2020, minor_2020 ])
+      expect(described_class.call(year: 2019)).to be_empty
+    end
+
+    it "曲の年は、最も人気の作品の年になる" do
+      song = spotify_song("リメイクでも使われた曲")
+      AnimeSong.create!(anime: anime(100, season: "2005-spring"), song: song, song_type: :op)
+      AnimeSong.create!(anime: anime(800, season: "2022-spring"), song: song, song_type: :op)
+
+      expect(described_class.call(year: 2022).to_a).to eq([ song ])
+      expect(described_class.call(year: 2005)).to be_empty
+    end
+
+    it "シリーズ共通の曲は、シリーズ内で最も人気のアニメの年になる" do
+      series = create(:anime_series)
+      anime(50, anime_series: series, season: "2013-spring")
+      anime(700, anime_series: series, season: "2016-summer")
+      song = spotify_song("シリーズの ED")
+      SeriesSong.create!(anime_series: series, song: song, song_type: :ed)
+
+      expect(described_class.call(year: 2016).first).to have_attributes(id: song.id, shelf_year: 2016, shelf_popularity: 700)
+      expect(described_class.call(year: 2013)).to be_empty
+    end
+
+    it ".years は棚に曲がある年を新しい順に返す" do
+      AnimeSong.create!(anime: anime(10, season: "2019-spring"), song: spotify_song("2019"), song_type: :op)
+      AnimeSong.create!(anime: anime(20, season: "2024-autumn"), song: spotify_song("2024 の OP"), song_type: :op)
+      AnimeSong.create!(anime: anime(30, season: "2024-winter"), song: spotify_song("2024 の ED"), song_type: :ed)
+      AnimeSong.create!(anime: anime(40, season: "2021-spring"), song: spotify_song("2021 の挿入歌"), song_type: :insert)
+      AnimeSong.create!(anime: anime(50, season: "2022-spring"), song: Song.create!(title: "未連携", artist: artist), song_type: :op)
+      AnimeSong.create!(anime: anime(60, season: nil), song: spotify_song("season なし"), song_type: :op)
+
+      expect(described_class.years).to eq([ 2024, 2019 ])
+    end
+  end
 end
