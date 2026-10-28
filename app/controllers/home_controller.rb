@@ -1,8 +1,6 @@
 class HomeController < ApplicationController
   include Pagy::Method
 
-  SHELF_PAGE_SIZE = 48
-
   def index
     # 以前はトップページで検索していたので、古い検索 URL は検索ページへ送る
     if params[:q].present? || params[:season].present?
@@ -10,7 +8,7 @@ class HomeController < ApplicationController
       return
     end
 
-    shelf = Songs::ShelfQuery.call.includes(:artist, :album, :platform_links)
-    @pagy, @songs = pagy(:offset, shelf, limit: SHELF_PAGE_SIZE)
+    # 続きは棚の端に近づいたときに ShelfSongsController から読み込む
+    @pagy, @songs = pagy(:countless, ShelfSongsController.shelf_songs, limit: ShelfSongsController::BATCH_SIZE, page: 1)
   end
 end

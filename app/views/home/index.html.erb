@@ -1,39 +1,56 @@
 <% content_for :title, "Anisonar | アニメの主題歌を、ジャケットから" %>
 <% content_for :full_bleed, true %>
 
-<div class="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-  <header class="mb-6 flex flex-wrap items-end justify-between gap-3 border-b border-base-300 pb-4">
-    <div>
-      <p class="mb-1 text-xs font-bold uppercase tracking-[0.2em] text-primary">OP / ED Shelf</p>
-      <h1 class="text-xl font-bold tracking-tight sm:text-3xl">アニメの主題歌を、ジャケットから</h1>
-      <p class="mt-1 text-sm text-base-content/60">人気のアニメ順に、Spotify で聴ける OP・ED を並べています</p>
-    </div>
-    <div class="flex items-center gap-3 text-sm">
-      <span class="text-base-content/50"><%= @pagy.count %> 曲</span>
-      <%= link_to "アニメから探す →", animes_path, class: "btn btn-ghost btn-sm" %>
-    </div>
-  </header>
+<div class="mx-auto flex min-h-[calc(100vh-3.5rem)] max-w-6xl flex-col py-10 sm:py-14">
+  <h1 class="mb-8 px-6 text-center text-sm tracking-[0.3em] text-base-content/50 sm:mb-10">アニメの主題歌</h1>
 
-  <% if @pagy.count.zero? %>
-    <div class="py-20 text-center">
-      <p class="mb-4 text-5xl">💿</p>
-      <p class="text-base-content/60">まだ棚に並べられる曲がありません</p>
-    </div>
+  <% if @songs.empty? %>
+    <p class="py-20 text-center text-sm text-base-content/50">まだ並べられる曲がありません</p>
   <% else %>
-    <div class="grid grid-cols-2 gap-x-3 gap-y-5 min-[480px]:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
-      <% @songs.each do |song| %>
-        <%= render "home/shelf_item", song: song %>
-      <% end %>
-    </div>
+    <% first = @songs.first %>
+    <section x-data="recordShelf" data-next-url="<%= shelf_songs_path(page: @pagy.next) if @pagy.next %>"
+             @keydown.window="onKeydown($event)" aria-label="OP・ED の棚">
+      <div class="relative">
+        <ul x-ref="track" @scroll.passive="onScroll" @wheel="onWheel($event)"
+            @touchstart.passive="cancelTarget()" @scrollend="cancelTarget(); updateActive()"
+            class="relative flex snap-x snap-mandatory items-center gap-2 overflow-x-auto py-6 [scrollbar-width:none] sm:gap-4 [&::-webkit-scrollbar]:hidden [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)] sm:[mask-image:linear-gradient(to_right,transparent,black_12%,black_88%,transparent)]">
+          <li class="w-[calc(19vw-0.5rem)] shrink-0 sm:w-[calc(50%-180px-1rem)] lg:w-[calc(50%-200px-1rem)]" aria-hidden="true"></li>
+          <%= render partial: "shelf_songs/item", collection: @songs, as: :song %>
+          <li x-ref="end" class="w-[calc(19vw-0.5rem)] shrink-0 sm:w-[calc(50%-180px-1rem)] lg:w-[calc(50%-200px-1rem)]" aria-hidden="true"></li>
+        </ul>
 
-    <%= render "shared/pagination", pagy: @pagy %>
+        <button type="button" @click="prev()" :disabled="(target ?? active) === 0"
+                class="btn btn-circle btn-ghost btn-sm absolute left-2 top-1/2 hidden -translate-y-1/2 text-base-content/50 disabled:invisible sm:inline-flex"
+                aria-label="前の曲">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+        <button type="button" @click="next()" :disabled="atEnd()"
+                class="btn btn-circle btn-ghost btn-sm absolute right-2 top-1/2 hidden -translate-y-1/2 text-base-content/50 sm:inline-flex"
+                aria-label="次の曲">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
+      </div>
+
+      <%# 中央の曲の情報。最初の曲はサーバー側で描画し、以降は record_shelf.js が書き換える %>
+      <div class="mx-auto mt-4 max-w-md px-6 text-center" aria-live="polite">
+        <span class="badge badge-sm badge-soft" :class="current.typeClass" x-text="current.typeLabel"><%= song_type_label(first.shelf_song_type) %></span>
+        <h2 class="mt-3 truncate text-xl font-semibold tracking-tight sm:text-2xl" x-text="current.title"><%= first.title %></h2>
+        <p class="mt-1 truncate text-sm text-base-content/60" x-text="current.artist"><%= first.artist.name %></p>
+        <a href="<%= first.shelf_anime_id ? anime_path(first.shelf_anime_id) : anime_series_path(first.shelf_anime_series_id) %>"
+           :href="current.workUrl" x-text="current.work"
+           class="mt-1 block truncate text-xs text-base-content/40 hover:text-base-content/70 hover:underline"><%= first.shelf_work_title %></a>
+
+        <a href="<%= first.spotify_url %>" :href="current.spotifyUrl" target="_blank" rel="noopener"
+           class="btn btn-sm mt-6 gap-2 rounded-full border-none bg-[#1ed760] px-5 text-black hover:bg-[#1fdf64]">
+          <%= render "home/spotify_icon", css_class: "h-4 w-4" %>
+          Spotify で聴く
+        </a>
+      </div>
+    </section>
   <% end %>
 
-  <footer class="mt-12 border-t border-base-300 pt-6 text-center text-xs text-base-content/40">
-    <p class="flex items-center justify-center gap-1.5">
-      <%= render "home/spotify_icon", css_class: "h-3.5 w-3.5 text-[#1ed760]" %>
-      ジャケット画像と楽曲へのリンクは Spotify のものです
-    </p>
-    <p class="mt-2 opacity-70">© 2026 Anisonar — アニメソングデータベース</p>
-  </footer>
+  <p class="mt-auto flex items-center justify-center gap-1.5 px-6 pt-12 text-[11px] text-base-content/30">
+    <%= render "home/spotify_icon", css_class: "h-3 w-3" %>
+    ジャケット画像と楽曲へのリンクは Spotify のものです
+  </p>
 </div>

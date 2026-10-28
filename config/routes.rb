@@ -7,6 +7,7 @@ Rails.application.routes.draw do
   root to: "home#index"
   resources :animes, only: [ :index, :show ]
   resources :anime_series, only: [ :show ]
+  resources :shelf_songs, only: [ :index ]
 
   get "mypage" => "mypage#show", as: :mypage
 
