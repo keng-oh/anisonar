@@ -19,7 +19,7 @@
     <link rel="apple-touch-icon" href="/icon.png">
 
     <%# Includes all stylesheet files in app/assets/stylesheets %>
-    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
     <%= javascript_include_tag "application", "data-turbo-track": "reload", type: "module" %>
   </head>
 
@@ -44,7 +44,7 @@
               <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
               <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
             </svg>
-            <%= f.text_field :q, value: params[:q], placeholder: "アニメ・楽曲・アーティスト名で検索...", class: "grow text-sm" %>
+            <%= f.text_field :q, value: params[:q], placeholder: "アニメのタイトルで検索...", class: "grow text-sm" %>
           </label>
         <% end %>
       </div>
@@ -63,7 +63,7 @@
                   <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
                   <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                 </svg>
-                <%= f.text_field :q, value: params[:q], placeholder: "アニメ・楽曲・アーティスト名で検索...", class: "grow text-sm" %>
+                <%= f.text_field :q, value: params[:q], placeholder: "アニメのタイトルで検索...", class: "grow text-sm" %>
               </label>
             <% end %>
             <div class="flex flex-col gap-2">
