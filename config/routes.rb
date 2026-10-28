@@ -4,9 +4,10 @@ Rails.application.routes.draw do
   devise_for :users
   mount Sidekiq::Web => "/sidekiq"
 
-  root to: "animes#index"
+  root to: "home#index"
   resources :animes, only: [ :index, :show ]
   resources :anime_series, only: [ :show ]
+  resources :shelf_songs, only: [ :index ]
 
   get "mypage" => "mypage#show", as: :mypage
 

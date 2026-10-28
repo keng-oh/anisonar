@@ -1,0 +1,12 @@
+<%# ジャケットが無い曲。彩度を抑えた色で、曲ごとに少しだけ色味を変える %>
+<% hue = (song.id * 47) % 360 %>
+<div class="flex h-full w-full items-center justify-center"
+     style="background: linear-gradient(160deg, hsl(<%= hue %> 12% 34%), hsl(<%= hue %> 10% 22%));">
+  <svg viewBox="0 0 100 100" class="h-1/2 w-1/2 opacity-90" aria-hidden="true">
+    <circle cx="50" cy="50" r="48" fill="hsl(<%= hue %> 8% 14%)"/>
+    <circle cx="50" cy="50" r="38" fill="none" stroke="hsl(<%= hue %> 8% 22%)" stroke-width="0.8"/>
+    <circle cx="50" cy="50" r="29" fill="none" stroke="hsl(<%= hue %> 8% 22%)" stroke-width="0.8"/>
+    <circle cx="50" cy="50" r="15" fill="hsl(<%= hue %> 18% 58%)"/>
+    <circle cx="50" cy="50" r="2" fill="hsl(<%= hue %> 8% 14%)"/>
+  </svg>
+</div>

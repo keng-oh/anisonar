@@ -19,7 +19,10 @@ class Song < ApplicationRecord
   scope :spotify_untried, -> { spotify_unlinked.where.not(id: PlatformLinkAttempt.spotify.select(:song_id)) }
   scope :spotify_not_found, -> { spotify_unlinked.where(id: PlatformLinkAttempt.spotify.select(:song_id)) }
 
+  # 一覧で includes(:platform_links) 済みなら、曲ごとにクエリを発行しない
   def spotify_link
+    return platform_links.find(&:spotify?) if platform_links.loaded?
+
     platform_links.find_by(platform: :spotify)
   end
 

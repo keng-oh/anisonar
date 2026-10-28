@@ -1,0 +1,15 @@
+<% if pagy.pages > 1 %>
+  <nav class="flex justify-center mt-8" aria-label="ページ送り">
+    <div class="join">
+      <%= link_to "«", pagy.previous ? pagy.page_url(pagy.previous) : "#",
+            class: "join-item btn btn-sm #{'btn-disabled' unless pagy.previous}", aria: { label: "前のページ" } %>
+      <% ([ 1, pagy.page - 2 ].max..[ pagy.pages, pagy.page + 2 ].min).each do |p| %>
+        <%= link_to p, pagy.page_url(p),
+              class: "join-item btn btn-sm #{'btn-active' if p == pagy.page}",
+              aria: { current: (p == pagy.page ? "page" : nil) } %>
+      <% end %>
+      <%= link_to "»", pagy.next ? pagy.page_url(pagy.next) : "#",
+            class: "join-item btn btn-sm #{'btn-disabled' unless pagy.next}", aria: { label: "次のページ" } %>
+    </div>
+  </nav>
+<% end %>

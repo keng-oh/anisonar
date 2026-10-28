@@ -1,0 +1,4 @@
+<%= render partial: "shelf_songs/item", collection: @songs, as: :song %>
+<% if @pagy.next %>
+  <template data-shelf-next="<%= shelf_songs_path(page: @pagy.next) %>"></template>
+<% end %>

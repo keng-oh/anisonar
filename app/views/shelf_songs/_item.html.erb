@@ -1,0 +1,22 @@
+<%# 中央に来た曲の情報は data 属性から棚の下に表示する（record_shelf.js） %>
+<li data-shelf-item
+    data-title="<%= song.title %>"
+    data-artist="<%= song.artist.name %>"
+    data-work="<%= song.shelf_work_title %>"
+    data-work-url="<%= song.shelf_anime_id ? anime_path(song.shelf_anime_id) : anime_series_path(song.shelf_anime_series_id) %>"
+    data-type-label="<%= song_type_label(song.shelf_song_type) %>"
+    data-type-class="<%= song_type_badge_class(song.shelf_song_type) %>"
+    data-spotify-url="<%= song.spotify_url %>"
+    class="group w-[62vw] shrink-0 snap-center sm:w-[360px] lg:w-[400px]">
+  <button type="button" @click="centerItem($el)"
+          class="block w-full scale-[0.8] cursor-pointer opacity-40 transition duration-500 ease-out group-data-[active=true]:scale-100 group-data-[active=true]:cursor-default group-data-[active=true]:opacity-100 motion-reduce:transition-none"
+          aria-label="「<%= song.title %>」を中央に表示">
+    <div class="aspect-square overflow-hidden rounded-lg bg-base-300 shadow-lg shadow-black/20 transition-shadow duration-500 group-data-[active=true]:shadow-2xl group-data-[active=true]:shadow-black/40">
+      <% if song.album_image_url.present? %>
+        <img src="<%= song.album_image_url %>" alt="" loading="lazy" decoding="async" draggable="false" class="h-full w-full object-cover">
+      <% else %>
+        <%= render "shelf_songs/placeholder", song: song %>
+      <% end %>
+    </div>
+  </button>
+</li>
