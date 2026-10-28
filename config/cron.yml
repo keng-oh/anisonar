@@ -14,6 +14,12 @@ spotify_track_bulk_resolve:
   cron: "15 * * * *"
   queue: default
 
+# 処理待ちのクロール依頼が少なくなったら、最近の作品と人気の作品から補充する
+crawl_request_auto_enqueue:
+  class: CrawlRequestAutoEnqueueJob
+  cron: "*/30 * * * *"
+  queue: default
+
 cover_image_bulk_resolve:
   class: CoverImageBulkResolveJob
   cron: "30 6 * * *"
