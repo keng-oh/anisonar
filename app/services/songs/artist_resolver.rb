@@ -1,5 +1,5 @@
 module Songs
-  # AiResearcher の出力（artist_name を含む items）を BulkSaveService 用の形式に変換する。
+  # n8n が抽出した楽曲（artist_name を含む items）を BulkSaveService 用の形式に変換する。
   # アーティストの解決だけでなく、必要なら作成まで行い、常に実在する Artist の id を返す
   # （items 配列内に同じ新規アーティストの曲が複数あっても、作成は1回だけになるようにするため）。
   #

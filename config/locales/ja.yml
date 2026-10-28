@@ -79,7 +79,6 @@ ja:
         anime_id: アニメ
         anime_series: シリーズ
         anime_series_id: シリーズ
-        dify_document_id: Dify ドキュメントID
         error_message: エラーメッセージ
         status: ステータス
       user:
@@ -139,8 +138,6 @@ ja:
     crawl_request_status:
       pending: 未着手
       crawling: クロール中
-      crawled: クロール完了
-      extracting: 抽出中
       done: 完了
       failed: 失敗
     user_role:

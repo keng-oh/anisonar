@@ -30,7 +30,7 @@ module Api
         }
       end
 
-      # n8nがクロール/抽出の進行状況（status・Difyドキュメント連携結果など）を更新する
+      # n8nがクロールの進行状況（status・失敗時の error_message）を更新する
       def update
         crawl_request = CrawlRequest.find(params[:id])
         if crawl_request.update(crawl_request_params)
@@ -62,7 +62,7 @@ module Api
       private
 
         def crawl_request_params
-          params.permit(:status, :dify_document_id, :error_message)
+          params.permit(:status, :error_message)
         end
     end
   end
