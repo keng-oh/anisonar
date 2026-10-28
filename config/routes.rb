@@ -15,6 +15,7 @@ Rails.application.routes.draw do
     resources :animes, only: [ :index, :edit, :update ] do
       collection do
         post :bulk_cover_image_resolve
+        post :bulk_enqueue_crawl_requests
       end
       member do
         post :enqueue_crawl_request
@@ -43,7 +44,11 @@ Rails.application.routes.draw do
         post "annict_sync", to: "integrations#create_annict_sync", as: :create_annict_sync
       end
     end
-    resources :crawl_requests, only: [ :destroy ]
+    resources :crawl_requests, only: [ :destroy ] do
+      member do
+        post :retry
+      end
+    end
   end
 
   namespace :api do

@@ -16,7 +16,8 @@ module Admin
 
     def bulk_enqueue_crawl_requests
       limit = (params[:limit].presence || 10).to_i.clamp(1, 50)
-      created = CrawlRequests::BulkEnqueueService.call(limit: limit)
+      strategy = CrawlRequests::BulkEnqueueService::STRATEGIES.find { |s| s.to_s == params[:strategy] } || :popular
+      created = CrawlRequests::BulkEnqueueService.call(limit: limit, strategy: strategy)
       redirect_to crawl_requests_admin_integrations_path, notice: "#{created.size} 件をクロールキューに追加しました"
     end
 
