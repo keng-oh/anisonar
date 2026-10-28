@@ -7,6 +7,7 @@
     data-type-label="<%= song_type_label(song.shelf_song_type) %>"
     data-type-class="<%= song_type_badge_class(song.shelf_song_type) %>"
     data-spotify-url="<%= song.spotify_url %>"
+    data-track-id="<%= song.spotify_link&.platform_track_id %>"
     class="group w-[62vw] shrink-0 snap-center sm:w-[360px] lg:w-[400px]">
   <button type="button" @click="centerItem($el)"
           class="block w-full scale-[0.8] cursor-pointer opacity-40 transition duration-500 ease-out group-data-[active=true]:scale-100 group-data-[active=true]:cursor-default group-data-[active=true]:opacity-100 motion-reduce:transition-none"

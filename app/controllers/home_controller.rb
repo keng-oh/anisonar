@@ -8,7 +8,11 @@ class HomeController < ApplicationController
       return
     end
 
+    # 年の指定が無い・曲の無い年なら、曲のある最も新しい年を出す
+    @years = Songs::ShelfQuery.years
+    @year = ShelfSongsController.year_param(params[:year]).presence_in(@years) || @years.first
+
     # 続きは棚の端に近づいたときに ShelfSongsController から読み込む
-    @pagy, @songs = pagy(:countless, ShelfSongsController.shelf_songs, limit: ShelfSongsController::BATCH_SIZE, page: 1)
+    @pagy, @songs = pagy(:countless, ShelfSongsController.shelf_songs(year: @year), limit: ShelfSongsController::BATCH_SIZE, page: 1)
   end
 end

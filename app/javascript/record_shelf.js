@@ -2,6 +2,8 @@
 // 中央に最も近い曲を「選択中」にする。マウスホイールの縦回転と ← / → キー、前後ボタンでも 1 曲ずつ送る
 const LOAD_MORE_THRESHOLD = 6
 const WHEEL_STEP_INTERVAL_MS = 450
+// 素早く送っている間にプレーヤーを何度も読み直さないよう、止まってから差し替える
+const PLAYER_SWITCH_DELAY_MS = 400
 
 export default function recordShelf() {
   return {
@@ -13,6 +15,7 @@ export default function recordShelf() {
     loading: false,
     frame: null,
     wheelLockedUntil: 0,
+    playerTimer: null,
 
     init() {
       this.nextUrl = this.$el.dataset.nextUrl || null
@@ -62,8 +65,9 @@ export default function recordShelf() {
         else item.removeAttribute("aria-current")
       })
       this.active = index
-      const { title, artist, work, workUrl, typeLabel, typeClass, spotifyUrl } = items[index].dataset
+      const { title, artist, work, workUrl, typeLabel, typeClass, spotifyUrl, trackId } = items[index].dataset
       this.current = { title, artist, work, workUrl, typeLabel, typeClass, spotifyUrl }
+      this.schedulePlayer(trackId)
 
       if (index >= items.length - LOAD_MORE_THRESHOLD) this.loadMore()
     },
@@ -116,6 +120,29 @@ export default function recordShelf() {
       this.wheelLockedUntil = now + WHEEL_STEP_INTERVAL_MS
       if (event.deltaY > 0) this.next()
       else this.prev()
+    },
+
+    schedulePlayer(trackId) {
+      clearTimeout(this.playerTimer)
+      if (!trackId) return
+
+      this.playerTimer = setTimeout(() => this.loadPlayer(trackId), PLAYER_SWITCH_DELAY_MS)
+    },
+
+    // iframe の src を書き換えるとブラウザの履歴に積まれる（戻るボタンが効かなくなる）ので、
+    // 同じ属性の新しい iframe に差し替える。自動再生はしない。theme=0 は落ち着いた暗い配色（埋め込みの生成画面の「Dark」と同じ）
+    loadPlayer(trackId) {
+      const current = this.$refs.playerSlot.querySelector("iframe")
+      if (!current || current.dataset.trackId === trackId) return
+
+      const iframe = current.cloneNode(false)
+      iframe.dataset.trackId = trackId
+      iframe.src = `https://open.spotify.com/embed/track/${encodeURIComponent(trackId)}?theme=0`
+      current.replaceWith(iframe)
+    },
+
+    destroy() {
+      clearTimeout(this.playerTimer)
     },
 
     async loadMore() {
