@@ -21,6 +21,19 @@
         { selected: params[:status] },
         class: "select select-bordered" %>
 
+  <%= f.select :year, [ [ "年: 全て", "" ] ] + @years.map { |y| [ "#{y}年", y ] },
+        { selected: params[:year] }, class: "select select-bordered" %>
+
+  <%= f.select :season_name, [ [ "季節: 全て", "" ] ] + Anime::SEASON_NAMES_IN_ORDER.map { |n| [ Anime::SEASON_NAME_LABELS[n], n ] },
+        { selected: params[:season_name] }, class: "select select-bordered" %>
+
+  <%= f.select :crawl,
+        [ [ "クロール: 全て", "" ], [ "未依頼", "none" ], [ "処理待ち・処理中", "waiting" ], [ "完了", "done" ], [ "失敗", "failed" ] ],
+        { selected: params[:crawl] }, class: "select select-bordered" %>
+
+  <%= f.select :songs, [ [ "楽曲: 全て", "" ], [ "楽曲あり", "with" ], [ "楽曲なし", "without" ] ],
+        { selected: params[:songs] }, class: "select select-bordered" %>
+
   <%= f.select :sort,
         [["シーズン新しい順", "season"], ["人気順", "popularity"], ["タイトル順", "title"]],
         { selected: params[:sort] || "popularity" },
@@ -30,10 +43,24 @@
   <%= link_to "クリア", admin_animes_path, class: "btn btn-ghost" %>
 <% end %>
 
+<%# 絞り込みの条件を引き継いでクロール依頼する（「絞り込み結果を依頼」はチェックを無視して条件だけを使う） %>
+<%= form_with url: bulk_enqueue_crawl_requests_admin_animes_path, method: :post, id: "bulk-crawl-form" do %>
+  <% params.permit(:q, :media_type, :status, :year, :season_name, :crawl, :songs, :sort).each do |key, value| %>
+    <%= hidden_field_tag key, value %>
+  <% end %>
+  <div class="mb-3 flex flex-wrap items-center gap-2">
+    <button type="submit" name="scope" value="selected" class="btn btn-outline btn-sm">選択したアニメをクロール依頼</button>
+    <button type="submit" name="scope" value="filtered" class="btn btn-outline btn-sm"
+      data-turbo-confirm="絞り込んだアニメを、並び順の上から最大<%= Admin::AnimesController::BULK_ENQUEUE_LIMIT %>件クロール依頼します（依頼済み・同じシリーズのものは除きます）。よろしいですか？">絞り込み結果をクロール依頼（最大<%= Admin::AnimesController::BULK_ENQUEUE_LIMIT %>件）</button>
+    <span class="text-xs text-base-content/50">シリーズに属するアニメはシリーズ単位で1件になります</span>
+  </div>
+<% end %>
+
 <div class="overflow-x-auto">
   <table class="table table-zebra">
     <thead>
       <tr>
+        <th></th>
         <th>タイトル</th>
         <th>シリーズ</th>
         <th>メディア</th>
@@ -41,12 +68,19 @@
         <th>ステータス</th>
         <th>楽曲数</th>
         <th>視聴者数</th>
+        <th>クロール</th>
         <th></th>
       </tr>
     </thead>
     <tbody>
       <% @animes.each do |anime| %>
+        <% crawl_request = @crawl_statuses[anime.id] %>
         <tr>
+          <td>
+            <% unless crawl_request %>
+              <input type="checkbox" name="anime_ids[]" value="<%= anime.id %>" form="bulk-crawl-form" class="checkbox checkbox-sm" aria-label="<%= anime.title %> を選択">
+            <% end %>
+          </td>
           <td>
             <div>
               <p class="font-semibold"><%= anime.title %></p>
@@ -65,6 +99,14 @@
           </td>
           <td class="text-sm text-right"><%= anime.anime_songs.size %></td>
           <td class="text-sm text-right"><%= number_with_delimiter(anime.watchers_count) %></td>
+          <td class="text-sm whitespace-nowrap">
+            <% if crawl_request %>
+              <span class="badge badge-sm <%= { "done" => "badge-success", "failed" => "badge-error" }.fetch(crawl_request.status, "badge-info") %>"
+                    title="<%= crawl_request.error_message %>"><%= t("enums.crawl_request_status.#{crawl_request.status}") %></span>
+            <% else %>
+              <span class="text-xs text-base-content/40">未依頼</span>
+            <% end %>
+          </td>
           <td>
             <div class="flex gap-1 justify-end">
               <%= link_to "編集", edit_admin_anime_path(anime), class: "btn btn-ghost btn-xs" %>

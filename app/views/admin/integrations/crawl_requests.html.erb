@@ -4,16 +4,19 @@
   <h1 class="text-2xl font-bold">n8nクロールキュー</h1>
   <div class="flex items-center gap-3">
     <span class="badge badge-outline"><%= @pagy.count %> 件</span>
-    <%= button_to "視聴者数上位10件を一括追加", bulk_enqueue_crawl_requests_admin_integrations_path(limit: 10),
+    <%= button_to "人気の作品から10件追加", bulk_enqueue_crawl_requests_admin_integrations_path(limit: 10, strategy: "popular"),
           method: :post, class: "btn btn-primary btn-sm",
-          form: { data: { turbo_confirm: "未追加のアニメから視聴者数上位10件をクロールキューに追加します（シリーズ所属アニメはシリーズ単位でまとめられます）。よろしいですか？" } } %>
+          form: { data: { turbo_confirm: "未依頼のアニメから、視聴者数の多い順に10件をクロールキューに追加します（シリーズ所属アニメはシリーズ単位でまとめます）。よろしいですか？" } } %>
+    <%= button_to "最近の作品から10件追加", bulk_enqueue_crawl_requests_admin_integrations_path(limit: 10, strategy: "recent"),
+          method: :post, class: "btn btn-outline btn-sm",
+          form: { data: { turbo_confirm: "去年から今のシーズンまでに放送した未依頼のアニメから、視聴者数の多い順に10件をクロールキューに追加します。よろしいですか？" } } %>
   </div>
 </div>
 
 <div class="card bg-base-100 shadow-sm">
   <div class="card-body">
     <p class="text-sm text-base-content/60 mb-2">
-      アニメ編集画面の「📥 クロールキューへ追加」で追加されたクロール依頼の状況です。
+      クロール依頼の状況です。処理待ちが5件を切ると、最近の作品と人気の作品から30分ごとに自動で補充されます。アニメ一覧からまとめて依頼することもできます。
     </p>
 
     <%= form_with url: crawl_requests_admin_integrations_path, method: :get, class: "mb-4 flex flex-wrap gap-2 items-end" do |f| %>
@@ -50,10 +53,14 @@
                 <td><span class="badge badge-sm"><%= cr.status %></span></td>
                 <td class="text-xs max-w-md whitespace-pre-wrap break-words"><%= cr.error_message %></td>
                 <td class="text-xs"><%= cr.created_at.strftime("%Y-%m-%d %H:%M") %></td>
-                <td class="text-right">
+                <td class="text-right whitespace-nowrap">
+                  <% if cr.failed? %>
+                    <%= button_to "やり直す", retry_admin_crawl_request_path(cr, status: @status), method: :post,
+                          class: "btn btn-ghost btn-xs", form: { class: "inline-block" } %>
+                  <% end %>
                   <%= button_to "削除", admin_crawl_request_path(cr, status: @status), method: :delete,
                         class: "btn btn-ghost btn-xs text-error",
-                        form: { data: { turbo_confirm: "「#{cr.target_label}」のクロール依頼を削除しますか？" } } %>
+                        form: { class: "inline-block", data: { turbo_confirm: "「#{cr.target_label}」のクロール依頼を削除しますか？" } } %>
                 </td>
               </tr>
             <% end %>
