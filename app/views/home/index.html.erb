@@ -33,9 +33,10 @@
         <ul x-ref="track" @scroll.passive="onScroll" @wheel="onWheel($event)"
             @touchstart.passive="cancelTarget()" @scrollend="cancelTarget(); updateActive()"
             class="relative flex snap-x snap-mandatory items-center gap-2 overflow-x-auto py-6 [scrollbar-width:none] sm:gap-4 [&::-webkit-scrollbar]:hidden [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)] sm:[mask-image:linear-gradient(to_right,transparent,black_12%,black_88%,transparent)]">
-          <li class="w-[calc(19vw-0.5rem)] shrink-0 sm:w-[calc(50%-180px-1rem)] lg:w-[calc(50%-200px-1rem)]" aria-hidden="true"></li>
+          <%# 端の曲も中央に寄せられるようにする余白。高さが 0 だと Firefox / Safari はスクロールできる幅に数えないので self-stretch で高さを持たせる %>
+          <li class="w-[calc(19vw-0.5rem)] shrink-0 self-stretch sm:w-[calc(50%-180px-1rem)] lg:w-[calc(50%-200px-1rem)]" aria-hidden="true"></li>
           <%= render partial: "shelf_songs/item", collection: @songs, as: :song %>
-          <li x-ref="end" class="w-[calc(19vw-0.5rem)] shrink-0 sm:w-[calc(50%-180px-1rem)] lg:w-[calc(50%-200px-1rem)]" aria-hidden="true"></li>
+          <li x-ref="end" class="w-[calc(19vw-0.5rem)] shrink-0 self-stretch sm:w-[calc(50%-180px-1rem)] lg:w-[calc(50%-200px-1rem)]" aria-hidden="true"></li>
         </ul>
 
         <button type="button" @click="prev()" :disabled="(target ?? active) === 0"
@@ -60,14 +61,16 @@
            class="mt-1 block truncate text-xs text-base-content/40 hover:text-base-content/70 hover:underline"><%= first.shelf_work_title %></a>
       </div>
 
-      <%# Spotify の埋め込みプレーヤーは 1 つだけ置き、中央の曲が変わったら少し待ってから差し替える（record_shelf.js） %>
+      <%# Spotify の埋め込みプレーヤーは 1 つだけ置き、中央の曲が変わったら少し待ってから差し替える（record_shelf.js / spotify_player.js） %>
       <div class="mx-auto mt-5 max-w-md px-6">
-        <div x-ref="playerSlot" class="h-20 overflow-hidden rounded-xl bg-base-300/40">
-          <iframe src="https://open.spotify.com/embed/track/<%= first.spotify_link.platform_track_id %>?theme=0"
-                  data-track-id="<%= first.spotify_link.platform_track_id %>"
-                  title="Spotify プレーヤー" width="100%" height="80" loading="lazy"
-                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                  class="block w-full border-0"></iframe>
+        <div x-ref="playerSlot" data-track-id="<%= first.spotify_link.platform_track_id %>"
+             class="h-20 overflow-hidden rounded-xl bg-base-300/40">
+          <noscript>
+            <iframe src="https://open.spotify.com/embed/track/<%= first.spotify_link.platform_track_id %>?theme=0"
+                    title="Spotify プレーヤー" width="100%" height="80" loading="lazy"
+                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                    class="block w-full border-0"></iframe>
+          </noscript>
         </div>
         <a href="<%= first.spotify_url %>" :href="current.spotifyUrl" target="_blank" rel="noopener"
            class="mt-3 inline-flex w-full items-center justify-center gap-1.5 text-xs text-base-content/45 hover:text-base-content/80">

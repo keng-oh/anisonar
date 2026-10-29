@@ -1,24 +1,36 @@
 // トップページの棚（カバーフロー）。横スクロール（スワイプ・トラックパッド）は CSS の scroll-snap に任せ、
 // 中央に最も近い曲を「選択中」にする。マウスホイールの縦回転と ← / → キー、前後ボタンでも 1 曲ずつ送る
+//
+// 選択中の曲は Spotify の埋め込みプレーヤーで聴ける。再生中に曲を替えると次の曲も再生し、
+// 最後まで再生したら次の曲へ送って再生する（年を切り替えたときは棚ごと作り直すので再生しない）
+import EmbedPlayer from "./spotify_player"
+
 const LOAD_MORE_THRESHOLD = 6
 const WHEEL_STEP_INTERVAL_MS = 450
 // 素早く送っている間にプレーヤーを何度も読み直さないよう、止まってから差し替える
 const PLAYER_SWITCH_DELAY_MS = 400
 
 export default function recordShelf() {
+  // プレーヤーは Alpine のリアクティブな状態に入れない（外部の iframe を持つので Proxy で包ませない）
+  let player = null
+
   return {
     active: 0,
     // ボタンやキーで送った先。スムーズスクロールの途中で続けて押されても 1 曲ずつ進めるために持つ
     target: null,
     current: {},
     nextUrl: null,
-    loading: false,
     frame: null,
     wheelLockedUntil: 0,
     playerTimer: null,
+    // 最後まで再生して次の曲へ送ったとき、その曲を再生する
+    playNext: false,
+    loadingPromise: null,
 
     init() {
       this.nextUrl = this.$el.dataset.nextUrl || null
+      player = new EmbedPlayer(this.$refs.playerSlot, { onEnded: () => this.advanceAfterEnd() })
+      player.load(this.$refs.playerSlot.dataset.trackId)
       this.updateActive()
     },
 
@@ -124,31 +136,39 @@ export default function recordShelf() {
 
     schedulePlayer(trackId) {
       clearTimeout(this.playerTimer)
-      if (!trackId) return
+      if (!trackId || trackId === player.trackId) return
 
-      this.playerTimer = setTimeout(() => this.loadPlayer(trackId), PLAYER_SWITCH_DELAY_MS)
+      this.playerTimer = setTimeout(() => {
+        const play = player.isPlaying || this.playNext
+        this.playNext = false
+        player.load(trackId, { play })
+      }, PLAYER_SWITCH_DELAY_MS)
     },
 
-    // iframe の src を書き換えるとブラウザの履歴に積まれる（戻るボタンが効かなくなる）ので、
-    // 同じ属性の新しい iframe に差し替える。自動再生はしない。theme=0 は落ち着いた暗い配色（埋め込みの生成画面の「Dark」と同じ）
-    loadPlayer(trackId) {
-      const current = this.$refs.playerSlot.querySelector("iframe")
-      if (!current || current.dataset.trackId === trackId) return
+    // 最後まで再生したら次の曲へ送る。読み込んだ分の最後なら続きを読み込んでから送り、本当に次が無ければ止まる
+    async advanceAfterEnd() {
+      const index = this.target ?? this.active
+      if (index >= this.items().length - 1) await this.loadMore()
+      if (index >= this.items().length - 1) return
 
-      const iframe = current.cloneNode(false)
-      iframe.dataset.trackId = trackId
-      iframe.src = `https://open.spotify.com/embed/track/${encodeURIComponent(trackId)}?theme=0`
-      current.replaceWith(iframe)
+      this.playNext = true
+      this.scrollToIndex(index + 1)
     },
 
     destroy() {
       clearTimeout(this.playerTimer)
+      player?.destroy()
     },
 
-    async loadMore() {
-      if (!this.nextUrl || this.loading) return
+    // 読み込み中に呼ばれたら、その読み込みが終わるのを待つ
+    loadMore() {
+      if (!this.nextUrl) return Promise.resolve()
 
-      this.loading = true
+      this.loadingPromise ||= this.fetchMore().finally(() => { this.loadingPromise = null })
+      return this.loadingPromise
+    },
+
+    async fetchMore() {
       try {
         const response = await fetch(this.nextUrl, { headers: { Accept: "text/html" } })
         if (!response.ok) return
@@ -161,8 +181,6 @@ export default function recordShelf() {
         this.$refs.end.before(template.content)
       } catch {
         // 通信に失敗しても棚はそのまま使える。次に端へ近づいたときに読み直す
-      } finally {
-        this.loading = false
       }
     },
 
