@@ -1,41 +1,42 @@
 # CLAUDE.md — Anisonar
 
-アニメ作品に紐づく楽曲（OP/ED/挿入歌/イメージソング）を管理・検索するデータベースサービス。
-MVP の目的は「アニメから関連楽曲を調べて Spotify で聴ける」体験。
+アニメ作品に紐づく楽曲（OP/ED/挿入歌/イメージソング/サントラ/キャラソン）を管理・検索するデータベースサービス。
+目的は「アニメから関連楽曲を調べて Spotify で聴ける」体験。現在のフェーズとテーマは Wiki の Roadmap ページ。
 
 ## ドメイン
 
 - アニメ（`animes`）とシリーズ（`anime_series`）は Annict から同期する
 - 楽曲（`songs`）はアニメ（`anime_songs`）またはシリーズ（`series_songs`）に、種別（OP / ED / 挿入歌 ...）付きで紐づく
-- アーティスト（`artists`）は person / unit / character の 3 種。`artist_relations` で
-  「声優 → キャラクター（voice_of）」「声優 → ユニット（member_of）」を表す
+- アーティスト（`artists`）は person / unit / character / joint（連名のクレジット）の 4 種。`artist_relations` で
+  「声優 → キャラクター（voice_of）」「声優 → ユニット（member_of）」「メンバー → 連名（credited_in）」を表す
 - 楽曲は n8n のワークフローが収集し（Wikipedia を前処理して LLM で抽出）、クロールキュー（`crawl_requests`）経由で取り込む。
-  AI が作ったデータは AI ボット用ユーザーの作成として記録する
+  AI が作ったデータは AI ボット用ユーザーの作成として記録する。AI の収集結果を正とし、承認の仕組みは持たない
+- Spotify への曲の照合は取り込みとは別の定期ジョブで行う。定期ジョブは sidekiq-cron（`config/cron.yml`、本番のみ）
 - 配信サービスへのリンクは `platform_links`、アルバムは `albums`（Spotify）
 
 **最新のデータ構造は `db/schema.rb` が正。** サービスの構想・ロードマップは GitHub Wiki にある
 （`git clone https://github.com/keng-oh/anisonar.wiki.git`、Concept / Roadmap ページ）。
-構想は実装と異なる部分があるので、食い違ったらコードと schema を優先する。
+Wiki と食い違ったらコードと schema を優先する。
 個別の作業の仕様は GitHub Issue の本文に書く。
 
 ## 技術スタック
 
-- Ruby 3.4.9 / Rails 8.1（通常モード）/ PostgreSQL 16 / Sidekiq 8 + Redis
-- Hotwire（Turbo + Stimulus）、Tailwind CSS v4 + daisyUI v5、esbuild
-- 認証は Devise。ViewComponent の gem は入っているが `app/components/` はまだ無い
-- テスト: RSpec / FactoryBot / shoulda-matchers / WebMock（VCR の gem もある）
+- Ruby 3.4.9 / Rails 8.1（通常モード）/ PostgreSQL 16 / Sidekiq 8 + sidekiq-cron + Redis
+- Turbo + Alpine.js（Stimulus は使っていない）、Tailwind CSS v4 + daisyUI v5、esbuild
+- 認証は Devise、ページネーションは Pagy
+- テスト: RSpec / FactoryBot / shoulda-matchers / WebMock
 - 品質: rubocop-rails-omakase / brakeman / bundler-audit
 
 ## 構成
 
 ```text
 app/
-  services/<domain>/   # 外部連携・業務ロジック（Annict, AniList, Spotify, Songs, Artists, Deduplication, Notifications ...）
-  lib/                 # 状態を持たないユーティリティ（NameNormalizer, UrlDeduplicator ...）
+  services/<domain>/   # 外部連携・業務ロジック（Annict, AniList, Spotify, Songs, Artists, CrawlRequests, CoverImages, Deduplication, Notifications）
+  lib/                 # 状態を持たないユーティリティ（NameNormalizer, NameFormatter, JointNameSplitter, UrlDeduplicator）
   jobs/                # Sidekiq ジョブ（XxxJob）
   controllers/admin/   # 管理画面
   controllers/api/     # admin 用 API と n8n 連携 API（api/n8n）
-lib/tasks/             # rake タスク（annict:sync, deduplication:*, cover_images:* ...）
+lib/tasks/             # rake タスク（annict:sync, spotify:*, artists:cleanup_orphans, deduplication:*, cover_images:* ...）
 ```
 
 ファイル種別ごとの規約は `.claude/rules/` にあり、該当ファイルを触るときに読み込まれる。
