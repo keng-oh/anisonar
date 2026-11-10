@@ -11,7 +11,8 @@
   </label>
 
   <%= f.select :artist_type,
-        [ [ "種別: 全て", "" ] ] + Artist.artist_types.keys.map { |t| [ artist_type_label(t), t ] },
+        [ [ "種別: 全て", "" ], [ artist_type_label("person"), "person" ], [ "声優", "voice_actor" ],
+          [ artist_type_label("unit"), "unit" ], [ artist_type_label("character"), "character" ], [ artist_type_label("joint"), "joint" ] ],
         { selected: params[:artist_type] },
         class: "select select-bordered" %>
 

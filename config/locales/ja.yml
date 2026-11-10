@@ -108,6 +108,12 @@ ja:
         value: 値
     errors:
       models:
+        artist_relation:
+          attributes:
+            base:
+              self_relation: 自分自身との関係は作れません
+              invalid_voice_of: 声優（個人）からキャラクターへの関係にしてください
+              invalid_member_of: 個人またはキャラクターからグループへの関係にしてください
         artist:
           attributes:
             spotify_artist_id:

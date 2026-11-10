@@ -50,17 +50,13 @@ module Artists
     private
 
       def resolve(member)
-        return Artist.find(member[:artist_id]) if member[:artist_id].present?
-
-        name = member[:name].to_s.strip
-        Artist.find_by(normalized_name: NameNormalizer.call(name)) ||
-          Artist.create!(
-            name:            name,
-            artist_type:     member[:artist_type].presence || "person",
-            anime_id:        (member[:anime_id].presence if member[:artist_type] == "character"),
-            created_by_user: @user,
-            updated_by_user: @user
-          )
+        RelationBuilder.resolve(
+          artist_id:   member[:artist_id],
+          name:        member[:name],
+          artist_type: member[:artist_type],
+          anime_id:    member[:anime_id],
+          user:        @user
+        )
       end
 
       def failure(*errors)
