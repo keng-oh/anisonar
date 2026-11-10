@@ -15,6 +15,32 @@ class Song < ApplicationRecord
   validates :title, presence: true
 
   scope :search, ->(q) { joins(:artist).where("songs.title ILIKE :q OR artists.name ILIKE :q", q: "%#{sanitize_sql_like(q)}%") }
+  scope :by_song_type, ->(type) {
+    where(id: AnimeSong.where(song_type: type).select(:song_id))
+      .or(where(id: SeriesSong.where(song_type: type).select(:song_id)))
+  }
+
+  # 紐づいたアニメのタイトル、紐づいたシリーズの名前、そのシリーズに属するアニメのタイトルのどれかに部分一致する曲
+  scope :by_anime_title, ->(q) {
+    pattern = "%#{sanitize_sql_like(q)}%"
+    animes = Anime.where("title ILIKE :q OR title_en ILIKE :q", q: pattern)
+    series_ids = AnimeSeries.where("name ILIKE :q", q: pattern)
+                            .or(AnimeSeries.where(id: animes.select(:anime_series_id)))
+                            .select(:id)
+
+    where(id: AnimeSong.where(anime_id: animes.select(:id)).select(:song_id))
+      .or(where(id: SeriesSong.where(anime_series_id: series_ids).select(:song_id)))
+  }
+
+  # 曲ごとに、紐づいたアニメと紐づいたシリーズに属するアニメの watchers_count の最大値で並べる。紐づきの無い曲は最後
+  scope :order_by_anime_popularity, -> {
+    popularity = <<~SQL.squish
+      (SELECT MAX(a.watchers_count) FROM animes a
+        WHERE a.id IN (SELECT anime_id FROM anime_songs WHERE anime_songs.song_id = songs.id)
+           OR a.anime_series_id IN (SELECT anime_series_id FROM series_songs WHERE series_songs.song_id = songs.id))
+    SQL
+    order(Arel.sql("#{popularity} DESC NULLS LAST"), created_at: :desc)
+  }
   scope :spotify_unlinked, -> { where.not(id: PlatformLink.spotify.select(:song_id)) }
   scope :spotify_untried, -> { spotify_unlinked.where.not(id: PlatformLinkAttempt.spotify.select(:song_id)) }
   scope :spotify_not_found, -> { spotify_unlinked.where(id: PlatformLinkAttempt.spotify.select(:song_id)) }

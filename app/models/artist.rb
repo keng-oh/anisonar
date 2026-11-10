@@ -37,6 +37,7 @@ class Artist < ApplicationRecord
   # 声優は種別を増やさず、voice_of の関係を持つ person で表す
   scope :voice_actors_only, -> { person.where(id: ArtistRelation.voice_of.select(:from_artist_id)) }
   # ユニット（「MYTH & ROID」など、名前に区切りを含むが連名ではないもの）は、種別をユニットにすれば外れる
+  scope :order_by_songs_count, -> { order(Arel.sql("(SELECT COUNT(*) FROM songs WHERE songs.artist_id = artists.id) DESC"), name: :asc) }
   scope :unsplit_joint_candidates, -> { where.not(artist_type: [ :joint, :unit ]).where("name ~* ?", JointNameSplitter::SQL_PATTERN) }
 
   # 取り込みジョブの部分失敗で残った、曲に紐づかないアーティストを抽出する。

@@ -28,4 +28,21 @@ RSpec.describe CrawlRequest, type: :model do
       expect(request.target_urls).to contain_exactly("https://re-zero-anime.jp", "http://re-zero-anime.jp/tv/")
     end
   end
+
+  describe ".search_target" do
+    it "アニメの依頼とシリーズの依頼の両方を作品名で探せる" do
+      for_anime = create(:crawl_request, anime: create(:anime, title: "星空ロケット"))
+      for_series = create(:crawl_request, :for_series, anime_series: create(:anime_series, name: "星空シリーズ"))
+      create(:crawl_request, anime: create(:anime, title: "無関係"))
+
+      expect(described_class.search_target("星空")).to contain_exactly(for_anime, for_series)
+    end
+
+    it "状態の絞り込みと組み合わせられる" do
+      done = create(:crawl_request, anime: create(:anime, title: "星空A"), status: :done)
+      create(:crawl_request, anime: create(:anime, title: "星空B"), status: :pending)
+
+      expect(described_class.where(status: :done).search_target("星空")).to contain_exactly(done)
+    end
+  end
 end

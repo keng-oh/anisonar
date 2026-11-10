@@ -8,7 +8,7 @@ module Admin
       artists = artists.joint if params[:joint] == "joint"
       artists = artists.unsplit_joint_candidates if params[:joint] == "unsplit"
       artists = filter_by_type(artists)
-      artists = artists.order(sort_order)
+      artists = params[:sort] == "songs_count" ? artists.order_by_songs_count : artists.order(sort_order)
 
       @pagy, @artists = pagy(:offset, artists, limit: 20)
     end
@@ -40,7 +40,7 @@ module Admin
       @artist = Artist.find(params[:id])
 
       if @artist.update(artist_params)
-        redirect_to admin_artists_path, notice: "「#{@artist.name}」を更新しました"
+        redirect_to return_to_list_path(admin_artists_path), notice: "「#{@artist.name}」を更新しました"
       else
         render :edit, status: :unprocessable_entity
       end
@@ -51,10 +51,10 @@ module Admin
       name = @artist.name
 
       if @artist.songs.exists?
-        redirect_to edit_admin_artist_path(@artist), alert: "「#{name}」には楽曲が紐づいているため削除できません"
+        redirect_to edit_admin_artist_path(@artist, return_to: params[:return_to].presence), alert: "「#{name}」には楽曲が紐づいているため削除できません"
       else
         @artist.destroy!
-        redirect_to admin_artists_path, notice: "「#{name}」を削除しました"
+        redirect_to return_to_list_path(admin_artists_path), notice: "「#{name}」を削除しました"
       end
     end
 
@@ -63,9 +63,9 @@ module Admin
       attrs = { spotify_artist_id: params[:spotify_artist_id] }
       attrs[:image_url] = params[:image_url] if params[:image_url].present?
       if @artist.update(attrs)
-        redirect_to edit_admin_artist_path(@artist), notice: "「#{@artist.name}」をSpotifyと連携しました"
+        redirect_to edit_admin_artist_path(@artist, return_to: params[:return_to].presence), notice: "「#{@artist.name}」をSpotifyと連携しました"
       else
-        redirect_to edit_admin_artist_path(@artist), alert: @artist.errors.full_messages.to_sentence
+        redirect_to edit_admin_artist_path(@artist, return_to: params[:return_to].presence), alert: @artist.errors.full_messages.to_sentence
       end
     end
 
@@ -77,7 +77,7 @@ module Admin
 
       # voice_actor は種別ではなく、voice_of を持つ person
       def filter_by_type(artists)
-        type = params[:type].to_s
+        type = params[:artist_type].to_s
         return artists.voice_actors_only if type == "voice_actor"
 
         Artist.artist_types.key?(type) ? artists.where(artist_type: type) : artists

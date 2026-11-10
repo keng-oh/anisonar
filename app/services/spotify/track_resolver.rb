@@ -10,10 +10,11 @@ module Spotify
     end
 
     def call
-      track = best_match
+      track, stage = best_match
       return nil unless track
 
-      backfill_artist_spotify_id(track)
+      # 作品名義・声優名義で見つかったときは、キャラクターのアーティストに ID を付けない
+      backfill_artist_spotify_id(track) if stage == :own
 
       album_data = track["album"] || {}
 
@@ -34,22 +35,25 @@ module Spotify
 
     private
 
-      # 検索結果の artists 配列を、spotify_artist_id（無ければ正規化名）で検証してから採用する。
-      # 曲名は表記揺れ・カバー・ライブ版などで誤マッチしやすいため、確信が持てない場合は nil を返す。
+      # 本人名義 → 声優名義 → 作品名義の順に試し、最初に見つかったトラックと段を返す。
+      # 検索はアーティスト名で絞らず（Spotify 側の表記違いで0件になるため）、曲名と名義で確かめる。
+      # 曲名が一致しないトラックは、どの段でも採用しない。確信が持てない場合は nil を返す
       def best_match
-        return joint_match if @song.artist.joint?
-
-        query = %(track:"#{@song.title}" artist:"#{@song.artist.name}")
-        candidates = @client.search_track(query, limit: 5)
-
-        if @song.artist.spotify_artist_id.present?
-          candidates.find { |t| t["artists"].any? { |a| a["id"] == @song.artist.spotify_artist_id } }
-        else
-          normalized_artist = normalize(@song.artist.name)
-          # まず完全一致、なければ部分一致（DBのアーティスト名にSpotifyのアーティスト名が含まれるか）
-          candidates.find { |t| t["artists"].any? { |a| normalize(a["name"]) == normalized_artist } } ||
-            candidates.find { |t| t["artists"].any? { |a| normalized_artist.include?(normalize(a["name"])) } }
+        if @song.artist.joint?
+          track = joint_match
+          return track && [ track, :joint ]
         end
+
+        track = own_match
+        return [ track, :own ] if track
+
+        return nil if Spotify::ArtistMatcher.joint_name?(@song.artist.name)
+
+        track = voice_match
+        return [ track, :voice ] if track
+
+        track = work_match
+        track && [ track, :work ]
       end
 
       # 連名の曲は、Spotify の ID を持つメンバーの名前で検索し、そのメンバー全員がトラックに並び、
@@ -69,24 +73,104 @@ module Spotify
         end
       end
 
-      # 連名のアーティストには補完しない。部分一致でメンバー1人の ID が入ってしまうため。
-      # update_columns はバリデーション（joint なら ID は空）を通らないので、ここで止める
+      # 本人名義。部分一致では採らない（名前全体か「かっこの外」と丸ごと一致するときだけ）
+      def own_match
+        artist = @song.artist
+        search(artist.name).find do |t|
+          if artist.spotify_artist_id.present?
+            t["artists"].any? { |a| a["id"] == artist.spotify_artist_id }
+          else
+            own_artist?(t)
+          end
+        end
+      end
+
+      # 「キャラ（声優）」名義の曲が、声優本人の名義で配信されているもの
+      def voice_match
+        voice_candidates.each do |voice|
+          key = NameNormalizer.credit_key(voice[:name])
+          track = search(voice[:name]).find do |t|
+            t["artists"].any? do |a|
+              (voice[:id].present? && a["id"] == voice[:id]) || NameNormalizer.credit_key(a["name"]) == key
+            end
+          end
+          return track if track
+        end
+        nil
+      end
+
+      # 作品名義（物語シリーズなど）で配信されているもの。カバー・カラオケは作品名と一致しないので落ちる
+      def work_match
+        work_titles.each do |title|
+          key = NameNormalizer.title_key(title)
+          track = search(title).find { |t| t["artists"].any? { |a| NameNormalizer.title_key(a["name"]) == key } }
+          return track if track
+        end
+        nil
+      end
+
+      # 曲名 + 名前で絞らずに検索し、曲名が一致するものだけ返す
+      def search(name)
+        @client.search_track("#{@song.title} #{name}", limit: Spotify::ArtistMatcher::TRACK_LIMIT)
+               .select { |t| Spotify::ArtistMatcher.same_title?(t["name"], @song.title) }
+      end
+
+      # 本人名義とみなす名前のキー: 名前全体と、「キャラ名（声優名）」の形ならかっこの外
+      def own_keys
+        name = @song.artist.name
+        keys = [ NameNormalizer.credit_key(name) ]
+        if Artists::JointMemberCandidates::CHARACTER_NAME.match?(name)
+          outside = name.sub(Artists::JointMemberCandidates::CHARACTER_NAME, "")
+          keys << NameNormalizer.credit_key(outside) if outside.present?
+        end
+        keys.compact_blank
+      end
+
+      def own_artist?(track)
+        track["artists"].any? { |a| own_keys.include?(NameNormalizer.credit_key(a["name"])) }
+      end
+
+      # voice_of で設定された声優。無ければ名前のかっこの中（複数人は除く）
+      def voice_candidates
+        related = ArtistRelation.voice_of.where(to_artist: @song.artist).includes(:from_artist).map(&:from_artist)
+        return related.map { |v| { name: v.name, id: v.spotify_artist_id } } if related.any?
+
+        name = @song.artist.name
+        return [] unless Artists::JointMemberCandidates::CHARACTER_NAME.match?(name)
+
+        inner = name[/[(（]([^()（）]+)[)）]\z/, 1].to_s.strip
+        return [] if inner.blank? || JointNameSplitter.call(inner).any?
+
+        [ { name: inner, id: nil } ]
+      end
+
+      # 曲のシリーズ名 → 曲のアニメのタイトル → そのシリーズ名 → キャラクターのアニメのタイトル → そのシリーズ名
+      # （title_key で重複と空を除き最大 3 件）
+      def work_titles
+        names = @song.anime_series.map(&:name)
+        song_animes = @song.animes.includes(:anime_series).to_a
+        names += song_animes.map(&:title) + song_animes.map { |a| a.anime_series&.name }
+        if (anime = @song.artist.anime)
+          names += [ anime.title, anime.anime_series&.name ]
+        end
+        names.compact_blank.uniq { |n| NameNormalizer.title_key(n) }
+             .reject { |n| NameNormalizer.title_key(n).blank? }
+             .first(Spotify::ArtistMatcher::MAX_TITLES)
+      end
+
+      # 本人名義で一致したときだけ補完する。連名（joint）には補完しない
+      # （update_columns はバリデーション（joint なら ID は空）を通らないので、ここで止める）。
+      # 丸ごと一致だけなので、メンバー（かっこの中）の名前では一致しない
       def backfill_artist_spotify_id(track)
         return if @song.artist.spotify_artist_id.present?
-        return if @song.artist.joint? || Spotify::ArtistMatcher.joint_name?(@song.artist.name)
+        return if @song.artist.joint?
 
-        normalized = normalize(@song.artist.name)
-        matched = track["artists"].find { |a| normalize(a["name"]) == normalized } ||
-                  track["artists"].find { |a| normalized.include?(normalize(a["name"])) }
+        matched = track["artists"].find { |a| own_keys.include?(NameNormalizer.credit_key(a["name"])) }
         return unless matched
 
         @song.artist.update_columns(spotify_artist_id: matched["id"])
       rescue => e
         Rails.logger.warn "[Spotify::TrackResolver] failed to backfill spotify_artist_id artist_id=#{@song.artist_id}: #{e.message}"
-      end
-
-      def normalize(str)
-        str.to_s.unicode_normalize(:nfkc).downcase.gsub(/\s+/, "")
       end
   end
 end

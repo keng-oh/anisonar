@@ -67,6 +67,22 @@ RSpec.describe Artist, type: :model do
       expect(described_class.unsplit_joint_candidates).to contain_exactly(unsplit)
     end
   end
+
+  describe ".order_by_songs_count" do
+    it "曲数の多い順、同点は名前順" do
+      many = create(:artist, name: "ぞ")
+      few = create(:artist, name: "あ")
+      tie_a = create(:artist, name: "い")
+      tie_b = create(:artist, name: "う")
+      create_list(:song, 2, artist: many)
+      create(:song, artist: tie_b)
+      create(:song, artist: tie_a)
+      few_songs = create(:song, artist: few)
+
+      expect(few_songs).to be_persisted
+      expect(described_class.order_by_songs_count.to_a).to eq([ many, few, tie_a, tie_b ])
+    end
+  end
 end
 
 RSpec.describe Artist, "関係" do

@@ -10,10 +10,10 @@
     <%= f.text_field :q, value: params[:q], placeholder: "名前・カナで検索", class: "grow" %>
   </label>
 
-  <%= f.select :type,
+  <%= f.select :artist_type,
         [ [ "種別: 全て", "" ], [ artist_type_label("person"), "person" ], [ "声優", "voice_actor" ],
           [ artist_type_label("unit"), "unit" ], [ artist_type_label("character"), "character" ], [ artist_type_label("joint"), "joint" ] ],
-        { selected: params[:type] },
+        { selected: params[:artist_type] },
         class: "select select-bordered" %>
 
   <%= f.select :spotify,
@@ -27,7 +27,7 @@
         class: "select select-bordered" %>
 
   <%= f.select :sort,
-        [ [ "新しい順", "newest" ], [ "古い順", "oldest" ], [ "名前順", "name" ] ],
+        [ [ "新しい順", "newest" ], [ "古い順", "oldest" ], [ "名前順", "name" ], [ "曲数の多い順", "songs_count" ] ],
         { selected: params[:sort] || "newest" },
         class: "select select-bordered" %>
 
@@ -50,7 +50,7 @@
       <% @artists.each do |artist| %>
         <tr>
           <td>
-            <%= link_to edit_admin_artist_path(artist), class: "link link-hover" do %>
+            <%= link_to edit_admin_artist_path(artist, return_to: request.fullpath), class: "link link-hover" do %>
               <p class="font-semibold"><%= artist.name %></p>
             <% end %>
             <% if artist.name_kana.present? %>
@@ -69,7 +69,7 @@
           </td>
           <td>
             <div class="flex gap-1 justify-end">
-              <%= link_to "編集", edit_admin_artist_path(artist), class: "btn btn-ghost btn-xs" %>
+              <%= link_to "編集", edit_admin_artist_path(artist, return_to: request.fullpath), class: "btn btn-ghost btn-xs" %>
             </div>
           </td>
         </tr>

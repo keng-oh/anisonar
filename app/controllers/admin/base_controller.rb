@@ -1,6 +1,7 @@
 module Admin
   class BaseController < ApplicationController
     include Pagy::Method
+    include Admin::ReturnToList
 
     before_action :authenticate_user!
     before_action :require_admin!

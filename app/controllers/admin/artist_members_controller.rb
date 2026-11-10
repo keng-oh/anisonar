@@ -16,9 +16,9 @@ module Admin
         if result.previous_spotify_artist_id.present?
           notice += "。付いていた Spotify ID（#{result.previous_spotify_artist_id}）は外しました。メンバーの誰かの ID であれば、そのメンバーに紐づけてください"
         end
-        redirect_to edit_admin_artist_path(@artist), notice: notice
+        redirect_to edit_admin_artist_path(@artist, return_to: params[:return_to].presence), notice: notice
       else
-        redirect_to edit_admin_artist_members_path(@artist), alert: result.errors.to_sentence
+        redirect_to edit_admin_artist_members_path(@artist, return_to: params[:return_to].presence), alert: result.errors.to_sentence
       end
     end
 

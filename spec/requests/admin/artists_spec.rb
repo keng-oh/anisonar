@@ -14,13 +14,13 @@ RSpec.describe "Admin::Artists", type: :request do
     end
 
     it "type=unit でユニットだけ" do
-      get admin_artists_path(type: "unit")
+      get admin_artists_path(artist_type: "unit")
       expect(response.body).to include("ユニットさん")
       expect(response.body).not_to include("歌手さん", "キャラさん")
     end
 
     it "type=voice_actor で voice_of を持つ person だけ" do
-      get admin_artists_path(type: "voice_actor")
+      get admin_artists_path(artist_type: "voice_actor")
       expect(response.body).to include("声優さん")
       expect(response.body).not_to include("歌手さん", "ユニットさん", "キャラさん")
     end
