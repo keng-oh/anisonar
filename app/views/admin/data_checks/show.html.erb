@@ -1,0 +1,68 @@
+<% content_for :title, "#{@check::LABEL} | データの点検 | 管理画面" %>
+
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-bold"><%= @check::LABEL %></h1>
+  <div class="flex items-center gap-3">
+    <% if @result && !@result.failed? %>
+      <span class="badge badge-outline"><%= @result.findings_count %> 件</span>
+    <% end %>
+    <%= link_to "← データの点検", admin_data_checks_path, class: "btn btn-ghost btn-sm" %>
+  </div>
+</div>
+
+<div class="card bg-base-100 shadow-sm">
+  <div class="card-body">
+    <p class="text-sm text-base-content/60 mb-2"><%= @check::DESCRIPTION %></p>
+
+    <% if @result.nil? %>
+      <p class="text-sm text-base-content/50">この項目の点検結果はまだありません</p>
+    <% elsif @result.failed? %>
+      <div role="alert" class="alert alert-error">
+        <span>この項目の点検は失敗しました: <%= @result.error_message %></span>
+      </div>
+    <% else %>
+      <p class="text-xs text-base-content/50 mb-2">最新の点検（<%= @run.started_at.strftime("%Y-%m-%d %H:%M") %>）の結果</p>
+
+      <% if @reasons.present? %>
+        <div class="mb-4">
+          <h2 class="text-sm font-semibold mb-1">理由の内訳</h2>
+          <ul class="text-sm">
+            <% @reasons.each do |reason, count| %>
+              <li><span class="badge badge-sm mr-2"><%= count %></span><%= reason %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <% if @findings.any? %>
+        <div class="overflow-x-auto">
+          <table class="table table-zebra table-sm">
+            <thead>
+              <tr>
+                <th>対象</th>
+                <th>理由</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @findings.each do |finding| %>
+                <% path = data_check_record_path(finding) %>
+                <tr>
+                  <td><%= finding.label %></td>
+                  <td class="text-xs max-w-xl whitespace-pre-wrap break-words"><%= finding.detail %></td>
+                  <td class="text-right whitespace-nowrap">
+                    <%= link_to("開く", path, class: "btn btn-ghost btn-xs") if path %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+
+        <%= render "admin/shared/pagination", pagy: @pagy %>
+      <% else %>
+        <p class="text-sm text-base-content/50">見つかったものはありません</p>
+      <% end %>
+    <% end %>
+  </div>
+</div>

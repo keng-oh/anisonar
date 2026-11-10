@@ -5,12 +5,12 @@ module Notifications
         @webhook_url = webhook_url.presence
       end
 
-      def notify(message)
+      def notify(message, title: nil)
         return if @webhook_url.nil?
 
         Faraday.post(@webhook_url) do |req|
           req.headers["Content-Type"] = "application/json"
-          req.body = { content: message }.to_json
+          req.body = { content: title ? "#{title}\n#{message}" : message }.to_json
         end
       rescue => e
         Rails.logger.error "[Notifications::Channels::Discord] notification failed: #{e.message}"

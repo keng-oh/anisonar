@@ -103,6 +103,15 @@
                 アニメ管理
               <% end %>
             </li>
+            <li>
+              <%= link_to admin_data_checks_path, class: sidebar_link_class(controller_name == "data_checks") do %>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                データの点検
+              <% end %>
+            </li>
 
             <li class="menu-title mt-1">楽曲</li>
             <li>
