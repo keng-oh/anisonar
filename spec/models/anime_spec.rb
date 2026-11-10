@@ -28,4 +28,37 @@ RSpec.describe Anime, type: :model do
       expect(described_class.with_crawl_status(%w[pending crawling])).to contain_exactly(requested)
     end
   end
+
+  describe "season_year / season_name" do
+    it "season を年と季節に分けて返す" do
+      anime = build(:anime, season: "2025-spring")
+      expect([ anime.season_year, anime.season_name ]).to eq([ "2025", "spring" ])
+      expect(build(:anime, season: "2025-").season_name).to be_nil
+      expect(build(:anime, season: nil).season_year).to be_nil
+    end
+
+    it "年と季節から season を組み立てる" do
+      anime = build(:anime)
+      anime.assign_attributes(season_year: "2025", season_name: "spring")
+      expect(anime.season).to eq("2025-spring")
+    end
+
+    it "年だけなら 2025- の形になる" do
+      anime = build(:anime, season: "2024-winter")
+      anime.assign_attributes(season_year: "2025", season_name: "")
+      expect(anime.season).to eq("2025-")
+    end
+
+    it "年が空ならシーズン未設定" do
+      anime = build(:anime, season: "2024-winter")
+      anime.assign_attributes(season_year: "", season_name: "spring")
+      expect(anime.season).to be_nil
+    end
+
+    it "不正な季節は無視する" do
+      anime = build(:anime)
+      anime.assign_attributes(season_year: "2025", season_name: "monsoon")
+      expect(anime.season).to eq("2025-")
+    end
+  end
 end

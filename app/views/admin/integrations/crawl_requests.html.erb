@@ -20,6 +20,10 @@
     </p>
 
     <%= form_with url: crawl_requests_admin_integrations_path, method: :get, class: "mb-4 flex flex-wrap gap-2 items-end" do |f| %>
+      <label class="input input-bordered flex items-center gap-2 flex-1 min-w-48">
+        <%= f.text_field :q, value: params[:q], placeholder: "作品名（アニメ・シリーズ）で検索", class: "grow" %>
+      </label>
+
       <%= f.select :status,
             [ [ "未処理", "pending" ], [ "クロール中", "crawling" ], [ "完了", "done" ], [ "失敗", "failed" ], [ "全て", "all" ] ],
             { selected: @status },
@@ -55,10 +59,10 @@
                 <td class="text-xs"><%= cr.created_at.strftime("%Y-%m-%d %H:%M") %></td>
                 <td class="text-right whitespace-nowrap">
                   <% if cr.failed? %>
-                    <%= button_to "やり直す", retry_admin_crawl_request_path(cr, status: @status), method: :post,
+                    <%= button_to "やり直す", retry_admin_crawl_request_path(cr, status: @status, q: params[:q].presence, page: params[:page].presence), method: :post,
                           class: "btn btn-ghost btn-xs", form: { class: "inline-block" } %>
                   <% end %>
-                  <%= button_to "削除", admin_crawl_request_path(cr, status: @status), method: :delete,
+                  <%= button_to "削除", admin_crawl_request_path(cr, status: @status, q: params[:q].presence, page: params[:page].presence), method: :delete,
                         class: "btn btn-ghost btn-xs text-error",
                         form: { class: "inline-block", data: { turbo_confirm: "「#{cr.target_label}」のクロール依頼を削除しますか？" } } %>
                 </td>

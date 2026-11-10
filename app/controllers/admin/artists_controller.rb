@@ -3,11 +3,12 @@ module Admin
     def index
       artists = Artist.includes(:songs)
       artists = artists.search(params[:q]) if params[:q].present?
+      artists = artists.where(artist_type: params[:artist_type]) if Artist.artist_types.key?(params[:artist_type])
       artists = artists.where(spotify_artist_id: nil) if params[:spotify] == "unlinked"
       artists = artists.where.not(spotify_artist_id: nil) if params[:spotify] == "linked"
       artists = artists.joint if params[:joint] == "joint"
       artists = artists.unsplit_joint_candidates if params[:joint] == "unsplit"
-      artists = artists.order(sort_order)
+      artists = params[:sort] == "songs_count" ? artists.order_by_songs_count : artists.order(sort_order)
 
       @pagy, @artists = pagy(:offset, artists, limit: 20)
     end
@@ -34,7 +35,7 @@ module Admin
       @artist = Artist.find(params[:id])
 
       if @artist.update(artist_params)
-        redirect_to admin_artists_path, notice: "「#{@artist.name}」を更新しました"
+        redirect_to return_to_list_path(admin_artists_path), notice: "「#{@artist.name}」を更新しました"
       else
         render :edit, status: :unprocessable_entity
       end
@@ -45,10 +46,10 @@ module Admin
       name = @artist.name
 
       if @artist.songs.exists?
-        redirect_to edit_admin_artist_path(@artist), alert: "「#{name}」には楽曲が紐づいているため削除できません"
+        redirect_to edit_admin_artist_path(@artist, return_to: params[:return_to].presence), alert: "「#{name}」には楽曲が紐づいているため削除できません"
       else
         @artist.destroy!
-        redirect_to admin_artists_path, notice: "「#{name}」を削除しました"
+        redirect_to return_to_list_path(admin_artists_path), notice: "「#{name}」を削除しました"
       end
     end
 
@@ -57,9 +58,9 @@ module Admin
       attrs = { spotify_artist_id: params[:spotify_artist_id] }
       attrs[:image_url] = params[:image_url] if params[:image_url].present?
       if @artist.update(attrs)
-        redirect_to edit_admin_artist_path(@artist), notice: "「#{@artist.name}」をSpotifyと連携しました"
+        redirect_to edit_admin_artist_path(@artist, return_to: params[:return_to].presence), notice: "「#{@artist.name}」をSpotifyと連携しました"
       else
-        redirect_to edit_admin_artist_path(@artist), alert: @artist.errors.full_messages.to_sentence
+        redirect_to edit_admin_artist_path(@artist, return_to: params[:return_to].presence), alert: @artist.errors.full_messages.to_sentence
       end
     end
 

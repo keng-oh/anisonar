@@ -6,7 +6,7 @@
       <% if artist.joint? || split_candidate %>
         <div class="flex items-center justify-between">
           <h2 class="card-title text-lg">構成メンバー</h2>
-          <%= link_to (artist.joint? ? "メンバーを編集" : "連名として分解する"), edit_admin_artist_members_path(artist), class: "btn btn-outline btn-sm" %>
+          <%= link_to (artist.joint? ? "メンバーを編集" : "連名として分解する"), edit_admin_artist_members_path(artist, return_to: params[:return_to].presence), class: "btn btn-outline btn-sm" %>
         </div>
         <% if artist.credit_members.any? %>
           <ul class="text-sm flex flex-col gap-1">

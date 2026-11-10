@@ -9,6 +9,7 @@ module Admin
     def crawl_requests
       @status = params[:status].presence || "pending"
       crawl_requests = CrawlRequest.includes(:anime, :anime_series).order(:created_at)
+      crawl_requests = crawl_requests.search_target(params[:q]) if params[:q].present?
       crawl_requests = crawl_requests.where(status: @status) if @status != "all"
 
       @pagy, @crawl_requests = pagy(:offset, crawl_requests, limit: 20)
