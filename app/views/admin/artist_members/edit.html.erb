@@ -15,6 +15,7 @@
 
   <%= form_with url: admin_artist_members_path(@artist), method: :patch,
         data: { turbo_confirm: "「#{@artist.name}」を連名として確定しますか？" } do %>
+    <%= hidden_field_tag :return_to, params[:return_to] if params[:return_to].present? %>
     <div class="card bg-base-100 shadow-sm"
       x-data="{
         rows: <%= @rows.to_json %>,
@@ -89,7 +90,7 @@
     </div>
 
     <div class="flex justify-end gap-2 mt-4">
-      <%= link_to "キャンセル", edit_admin_artist_path(@artist), class: "btn btn-ghost" %>
+      <%= link_to "キャンセル", edit_admin_artist_path(@artist, return_to: params[:return_to].presence), class: "btn btn-ghost" %>
       <%= submit_tag "連名として確定", class: "btn btn-primary" %>
     </div>
   <% end %>

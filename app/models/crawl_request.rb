@@ -6,6 +6,13 @@ class CrawlRequest < ApplicationRecord
 
   validate :exactly_one_target
 
+  # 作品名（アニメのタイトル、またはシリーズ名）に部分一致する依頼
+  scope :search_target, ->(q) {
+    pattern = "%#{sanitize_sql_like(q)}%"
+    where(anime_id: Anime.where("title ILIKE :q OR title_en ILIKE :q", q: pattern).select(:id))
+      .or(where(anime_series_id: AnimeSeries.where("name ILIKE :q", q: pattern).select(:id)))
+  }
+
   # クロール対象のアニメ一覧。シリーズ依頼なら所属アニメ全て、単体依頼ならそのアニメのみ。
   # includes(anime_series: :animes) を活かすため DB ではなくメモリ上でソートする
   def target_animes

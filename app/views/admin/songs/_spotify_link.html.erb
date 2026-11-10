@@ -97,6 +97,7 @@
       <%= sf.hidden_field :album_image_url %>
       <%= sf.hidden_field :album_release_date %>
       <%= hidden_field_tag :artist_spotify_id %>
+      <%= hidden_field_tag :return_to, params[:return_to] if params[:return_to].present? %>
     <% end %>
   </div>
 </div>

@@ -26,6 +26,7 @@ class Artist < ApplicationRecord
 
   scope :search, ->(q) { where("name ILIKE :q OR name_kana ILIKE :q", q: "%#{sanitize_sql_like(q)}%") }
   # ユニット（「MYTH & ROID」など、名前に区切りを含むが連名ではないもの）は、種別をユニットにすれば外れる
+  scope :order_by_songs_count, -> { order(Arel.sql("(SELECT COUNT(*) FROM songs WHERE songs.artist_id = artists.id) DESC"), name: :asc) }
   scope :unsplit_joint_candidates, -> { where.not(artist_type: [ :joint, :unit ]).where("name ~* ?", JointNameSplitter::SQL_PATTERN) }
 
   # 取り込みジョブの部分失敗で残った、曲に紐づかないアーティストを抽出する。

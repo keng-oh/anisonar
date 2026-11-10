@@ -15,6 +15,23 @@ class Anime < ApplicationRecord
   SEASON_NAME_LABELS = { "spring" => "春", "summer" => "夏", "autumn" => "秋", "winter" => "冬" }.freeze
 
   # "2025-spring" => "2025年春", "2025-" => "2025年放送"
+  # 編集画面の年・季節セレクト用。season は "2025-spring" / "2025-"（年だけ）の形
+  def season_year
+    season.to_s.split("-", 2).first.presence
+  end
+
+  def season_name
+    season.to_s.split("-", 2)[1].presence
+  end
+
+  def season_year=(value)
+    assign_season(value.to_s.strip.presence, season_name)
+  end
+
+  def season_name=(value)
+    assign_season(season_year, value.to_s.strip.presence)
+  end
+
   def self.season_label(season)
     year, name = season.to_s.split("-")
     return season if year.blank?
@@ -68,4 +85,12 @@ class Anime < ApplicationRecord
        )"
     )
   }
+
+  private
+
+    # 年が無ければ未設定、季節が無ければ "2025-"。季節は SEASON_NAMES_IN_ORDER のどれかだけ受け付ける
+    def assign_season(year, name)
+      name = nil unless SEASON_NAMES_IN_ORDER.include?(name)
+      self.season = year.to_s.match?(/\A\d{4}\z/) ? "#{year}-#{name}" : nil
+    end
 end

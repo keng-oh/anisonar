@@ -1,10 +1,12 @@
 module Admin
   class SongsController < BaseController
     def all
-      songs = Song.includes(:artist, :album, :platform_links, :platform_link_attempts, anime_songs: :anime)
+      songs = Song.includes(:artist, :album, :platform_links, :platform_link_attempts, anime_songs: :anime, series_songs: :anime_series)
       songs = songs.search(params[:q]) if params[:q].present?
+      songs = songs.by_song_type(params[:song_type]) if AnimeSong.song_types.key?(params[:song_type])
+      songs = songs.by_anime_title(params[:anime_q]) if params[:anime_q].present?
       songs = PLATFORM_FILTERS.fetch(params[:platform], ->(s) { s }).call(songs)
-      songs = songs.order(sort_order)
+      songs = sort_by_param(songs)
 
       @pagy, @songs = pagy(:offset, songs, limit: 20)
     end
@@ -37,7 +39,7 @@ module Admin
       Songs::SaveService.call(**service_params)
 
       if @song.errors.none?
-        redirect_to all_admin_songs_path, notice: "「#{@song.title}」を更新しました"
+        redirect_to return_to_list_path(all_admin_songs_path), notice: "「#{@song.title}」を更新しました"
       else
         render :edit, status: :unprocessable_entity
       end
@@ -47,7 +49,7 @@ module Admin
       @song = Song.find(params[:id])
       title = @song.title
       @song.destroy!
-      redirect_to all_admin_songs_path, notice: "「#{title}」を削除しました"
+      redirect_to return_to_list_path(all_admin_songs_path), notice: "「#{title}」を削除しました"
     end
 
     def spotify_link
@@ -67,7 +69,7 @@ module Admin
       link.save!
 
       backfill_artist_spotify_id(song.artist, params[:artist_spotify_id])
-      redirect_to edit_admin_song_path(song), notice: "「#{song.title}」をSpotifyと連携しました"
+      redirect_to edit_admin_song_path(song, return_to: params[:return_to].presence), notice: "「#{song.title}」をSpotifyと連携しました"
     end
 
     private
@@ -85,8 +87,10 @@ module Admin
         "not_found" => ->(songs) { songs.spotify_not_found }
       }.freeze
 
-      def sort_order
-        SORT_OPTIONS.fetch(params[:sort], SORT_OPTIONS["newest"])
+      def sort_by_param(songs)
+        return songs.order_by_anime_popularity if params[:sort] == "anime_popularity"
+
+        songs.order(SORT_OPTIONS.fetch(params[:sort], SORT_OPTIONS["newest"]))
       end
 
       def song_params

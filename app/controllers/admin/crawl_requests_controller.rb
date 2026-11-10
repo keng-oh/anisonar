@@ -4,13 +4,20 @@ module Admin
     def retry
       @crawl_request = CrawlRequest.find(params[:id])
       @crawl_request.update!(status: :pending, error_message: nil)
-      redirect_to crawl_requests_admin_integrations_path(status: params[:status]), notice: "「#{@crawl_request.target_label}」を処理待ちに戻しました"
+      redirect_to crawl_requests_admin_integrations_path(list_params), notice: "「#{@crawl_request.target_label}」を処理待ちに戻しました"
     end
 
     def destroy
       @crawl_request = CrawlRequest.find(params[:id])
       @crawl_request.destroy!
-      redirect_to crawl_requests_admin_integrations_path(status: params[:status]), notice: "クロール依頼を削除しました"
+      redirect_to crawl_requests_admin_integrations_path(list_params), notice: "クロール依頼を削除しました"
     end
+
+    private
+
+      # 状態・検索語・ページを保って一覧に戻す
+      def list_params
+        params.permit(:status, :q, :page).to_h
+      end
   end
 end
