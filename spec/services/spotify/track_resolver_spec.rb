@@ -83,6 +83,16 @@ RSpec.describe Spotify::TrackResolver do
       expect(artist.reload.spotify_artist_id).to be_nil
     end
 
+    it "本人名義の検索でも声優名義のトラックが返るとき、紐づけるがキャラクターに ID を付けない" do
+      artist = create(:artist, name: "ユイ（LiSA）", artist_type: :character, anime: anime)
+      song = Song.create!(title: "一番の宝物 (Yui ver.)", artist: artist)
+      allow(client).to receive(:search_track)
+        .and_return([ track("t1", "一番の宝物 (Yui ver.)", [ "lisa", "LiSA" ]) ])
+
+      expect(described_class.call(song: song, client: client).platform_track_id).to eq("t1")
+      expect(artist.reload.spotify_artist_id).to be_nil
+    end
+
     it "voice_of で設定された声優の ID を持つトラックに、名前が違っても紐づける" do
       voice = create(:artist, name: "高橋李依", spotify_artist_id: "rie")
       artist = create(:artist, name: "めぐみん", artist_type: :character, anime: anime)

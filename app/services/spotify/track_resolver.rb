@@ -144,12 +144,18 @@ module Spotify
         [ { name: inner, id: nil } ]
       end
 
-      # 曲の作品・シリーズ名、キャラクターの作品・シリーズ名（title_key で重複を除き最大 3 件）
+      # 曲のシリーズ名 → 曲のアニメのタイトル → そのシリーズ名 → キャラクターのアニメのタイトル → そのシリーズ名
+      # （title_key で重複と空を除き最大 3 件）
       def work_titles
-        animes = @song.animes.includes(:anime_series).to_a
-        animes << @song.artist.anime if @song.artist.anime
-        names = @song.anime_series.map(&:name) + animes.map(&:title) + animes.map { |a| a.anime_series&.name }
-        names.compact_blank.uniq { |n| NameNormalizer.title_key(n) }.first(Spotify::ArtistMatcher::MAX_TITLES)
+        names = @song.anime_series.map(&:name)
+        song_animes = @song.animes.includes(:anime_series).to_a
+        names += song_animes.map(&:title) + song_animes.map { |a| a.anime_series&.name }
+        if (anime = @song.artist.anime)
+          names += [ anime.title, anime.anime_series&.name ]
+        end
+        names.compact_blank.uniq { |n| NameNormalizer.title_key(n) }
+             .reject { |n| NameNormalizer.title_key(n).blank? }
+             .first(Spotify::ArtistMatcher::MAX_TITLES)
       end
 
       # 本人名義で一致したときだけ補完する。連名（joint）には補完しない
