@@ -108,7 +108,7 @@ module Artists
       end
 
       def credit_key(name)
-        NameNormalizer.call(name).gsub(/cv[.:：]?/, "")
+        NameNormalizer.credit_key(name)
       end
 
       def existing_member(text, track_artist)
