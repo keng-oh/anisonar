@@ -12,4 +12,15 @@ module NameNormalizer
   def self.call(str)
     str.to_s.unicode_normalize(:nfkc).downcase.gsub(/\s+/, "").gsub(/\)・/, ")、")
   end
+
+  # 「アクア（雨宮天）」と Spotify の「アクア (CV: 雨宮 天)」を同じとみなす比較キー
+  # （call の結果から「CV:」も落とす）。クレジットの名義の照合に使う。
+  def self.credit_key(str)
+    call(str).gsub(/cv[.:：]?/, "")
+  end
+
+  # 作品名の比較キー。記号を全部落とす（「〈物語〉シリーズ」と「物語シリーズ」が同じになる）。
+  def self.title_key(str)
+    call(str).gsub(/[^\p{L}\p{N}]/, "")
+  end
 end
