@@ -37,6 +37,7 @@ Rails.application.routes.draw do
       resource :members, only: [ :edit, :update ], controller: "artist_members"
       resources :relations, only: [ :create, :destroy ], controller: "artist_relations"
     end
+    resources :data_checks, only: [ :index, :show, :create ]
     resources :integrations, only: [] do
       collection do
         get :cover_images

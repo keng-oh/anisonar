@@ -15,4 +15,17 @@ FactoryBot.define do
     song
     song_type { :op }
   end
+
+  factory :platform_link do
+    song
+    platform { :spotify }
+    sequence(:platform_track_id) { |n| "track#{n}" }
+  end
+
+  factory :platform_link_attempt do
+    song
+    platform { :spotify }
+    last_attempted_at { Time.current }
+    next_attempt_at { 1.day.from_now }
+  end
 end

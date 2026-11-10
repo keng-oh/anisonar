@@ -146,6 +146,13 @@ ja:
       crawling: クロール中
       done: 完了
       failed: 失敗
+    data_check_run_trigger:
+      scheduled: 定期実行
+      manual: 手動
+    data_check_run_status:
+      running: 実行中
+      succeeded: 完了
+      failed: 失敗
     user_role:
       general: 一般
       admin: 管理者

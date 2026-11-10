@@ -30,3 +30,9 @@ db_dump:
   class: DbDumpJob
   cron: "0 4 * * * Asia/Tokyo"
   queue: default
+
+# 怪しいデータの点検。毎週月曜 7:00（JST。コンテナは TZ=Asia/Tokyo）
+data_check:
+  class: DataCheckJob
+  cron: "0 7 * * 1"
+  queue: default

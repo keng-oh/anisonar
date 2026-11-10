@@ -1,0 +1,65 @@
+<% content_for :title, "データの点検 | 管理画面" %>
+
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-bold">データの点検</h1>
+  <% if @running %>
+    <span class="badge badge-warning">実行中</span>
+  <% else %>
+    <%= button_to "今すぐ点検する", admin_data_checks_path, method: :post, class: "btn btn-primary btn-sm",
+          form: { data: { turbo_confirm: "全項目の点検を今すぐ実行します。よろしいですか？" } } %>
+  <% end %>
+</div>
+
+<div class="card bg-base-100 shadow-sm">
+  <div class="card-body">
+    <p class="text-sm text-base-content/60 mb-2">
+      誤りが混ざっていそうなデータを、毎週月曜の朝に洗い出します。見つかったものは、各項目の一覧から編集画面へ移って人が直します（自動では直しません）。
+    </p>
+
+    <% if @run %>
+      <p class="text-sm mb-2">
+        最新の点検: <%= @run.started_at.strftime("%Y-%m-%d %H:%M") %>
+        （<%= t("enums.data_check_run_trigger.#{@run.trigger}") %> / <%= t("enums.data_check_run_status.#{@run.status}") %>）
+      </p>
+      <% if @run.error_message.present? %>
+        <div role="alert" class="alert alert-error mb-2"><span><%= @run.error_message %></span></div>
+      <% end %>
+    <% else %>
+      <p class="text-sm text-base-content/50 mb-2">まだ点検を実行していません</p>
+    <% end %>
+
+    <div class="overflow-x-auto">
+      <table class="table table-zebra table-sm">
+        <thead>
+          <tr>
+            <th>項目</th>
+            <th class="text-right">件数</th>
+            <th class="text-right">前回からの増減</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% DataChecks::Registry::CHECKS.each do |check| %>
+            <% result = @results[check::KEY] %>
+            <tr>
+              <td>
+                <%= link_to check::LABEL, admin_data_check_path(check::KEY), class: "link link-hover font-semibold" %>
+                <div class="text-xs text-base-content/50"><%= check::DESCRIPTION %></div>
+              </td>
+              <% if result.nil? %>
+                <td class="text-right">—</td>
+                <td class="text-right">—</td>
+              <% elsif result.failed? %>
+                <td class="text-right" colspan="2">
+                  <span class="badge badge-error badge-sm" title="<%= result.error_message %>">失敗</span>
+                </td>
+              <% else %>
+                <td class="text-right"><%= result.findings_count %></td>
+                <td class="text-right"><%= DataChecks::Delta.format(@deltas[check::KEY]) %></td>
+              <% end %>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
