@@ -7,6 +7,15 @@ class Artist < ApplicationRecord
   has_many :credit_members, through: :credit_member_relations, source: :from_artist
   has_many :joint_credit_relations, -> { credited_in }, class_name: "ArtistRelation", foreign_key: :from_artist_id, inverse_of: :from_artist
   has_many :joint_credits, through: :joint_credit_relations, source: :to_artist
+  # voice_of: 声優（person）→ キャラクター、member_of: メンバー（person / character）→ ユニット
+  has_many :voiced_character_relations, -> { voice_of }, class_name: "ArtistRelation", foreign_key: :from_artist_id, inverse_of: :from_artist
+  has_many :voiced_characters, through: :voiced_character_relations, source: :to_artist
+  has_many :voice_actor_relations, -> { voice_of }, class_name: "ArtistRelation", foreign_key: :to_artist_id, inverse_of: :to_artist
+  has_many :voice_actors, through: :voice_actor_relations, source: :from_artist
+  has_many :unit_relations, -> { member_of }, class_name: "ArtistRelation", foreign_key: :from_artist_id, inverse_of: :from_artist
+  has_many :units, through: :unit_relations, source: :to_artist
+  has_many :unit_member_relations, -> { member_of }, class_name: "ArtistRelation", foreign_key: :to_artist_id, inverse_of: :to_artist
+  has_many :unit_members, through: :unit_member_relations, source: :from_artist
 
   # joint: 連名のクレジット。メンバーとは credited_in で結ぶ
   enum :artist_type, { person: 0, unit: 1, character: 2, joint: 3 }
@@ -25,6 +34,8 @@ class Artist < ApplicationRecord
   validates :spotify_artist_id, absence: { message: :joint_artist }, if: :joint?
 
   scope :search, ->(q) { where("name ILIKE :q OR name_kana ILIKE :q", q: "%#{sanitize_sql_like(q)}%") }
+  # 声優は種別を増やさず、voice_of の関係を持つ person で表す
+  scope :voice_actors_only, -> { person.where(id: ArtistRelation.voice_of.select(:from_artist_id)) }
   # ユニット（「MYTH & ROID」など、名前に区切りを含むが連名ではないもの）は、種別をユニットにすれば外れる
   scope :unsplit_joint_candidates, -> { where.not(artist_type: [ :joint, :unit ]).where("name ~* ?", JointNameSplitter::SQL_PATTERN) }
 

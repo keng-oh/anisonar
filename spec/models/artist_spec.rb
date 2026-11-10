@@ -34,8 +34,8 @@ RSpec.describe Artist, type: :model do
 
     it "ArtistRelationを持つアーティストは対象外" do
       orphan = create(:artist, created_by_user: ai_bot)
-      member = create(:artist, created_by_user: ai_bot)
-      ArtistRelation.create!(from_artist: orphan, to_artist: member, relation_type: :member_of)
+      unit = create(:artist, artist_type: :unit, created_by_user: ai_bot)
+      ArtistRelation.create!(from_artist: orphan, to_artist: unit, relation_type: :member_of)
 
       expect(described_class.orphans).to be_empty
     end
@@ -66,5 +66,30 @@ RSpec.describe Artist, type: :model do
 
       expect(described_class.unsplit_joint_candidates).to contain_exactly(unsplit)
     end
+  end
+end
+
+RSpec.describe Artist, "関係" do
+  let(:anime) { create(:anime) }
+  let(:actor) { create(:artist, artist_type: :person) }
+  let(:singer) { create(:artist, artist_type: :person) }
+  let(:character) { create(:artist, artist_type: :character, anime: anime) }
+  let(:unit) { create(:artist, artist_type: :unit) }
+
+  before do
+    ArtistRelation.create!(from_artist: actor, to_artist: character, relation_type: :voice_of)
+    ArtistRelation.create!(from_artist: character, to_artist: unit, relation_type: :member_of)
+  end
+
+  it "voice_of の両側と member_of の両側をたどれる" do
+    expect(actor.voiced_characters).to contain_exactly(character)
+    expect(character.voice_actors).to contain_exactly(actor)
+    expect(character.units).to contain_exactly(unit)
+    expect(unit.unit_members).to contain_exactly(character)
+  end
+
+  it "voice_actors_only は voice_of を持つ person だけ" do
+    expect(described_class.voice_actors_only).to contain_exactly(actor)
+    expect(described_class.voice_actors_only).not_to include(singer, character)
   end
 end

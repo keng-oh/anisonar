@@ -20,6 +20,8 @@
 
   <%= render "joint", artist: @artist %>
 
+  <%= render "relations", artist: @artist, animes: @animes %>
+
   <div class="card bg-base-100 shadow-sm mt-4">
     <div class="card-body gap-3">
       <h2 class="card-title text-lg">登録楽曲（<%= @artist.songs.size %>件）</h2>

@@ -10,6 +10,12 @@
     <%= f.text_field :q, value: params[:q], placeholder: "名前・カナで検索", class: "grow" %>
   </label>
 
+  <%= f.select :type,
+        [ [ "種別: 全て", "" ], [ artist_type_label("person"), "person" ], [ "声優", "voice_actor" ],
+          [ artist_type_label("unit"), "unit" ], [ artist_type_label("character"), "character" ], [ artist_type_label("joint"), "joint" ] ],
+        { selected: params[:type] },
+        class: "select select-bordered" %>
+
   <%= f.select :spotify,
         [ [ "Spotify連携: 全て", "" ], [ "連携済み", "linked" ], [ "未連携", "unlinked" ] ],
         { selected: params[:spotify] },

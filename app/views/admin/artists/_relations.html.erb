@@ -1,0 +1,111 @@
+<%# 声優・キャラクター・ユニットの関係（voice_of / member_of）。連名（joint）には出さない %>
+<%
+  sections = {
+    "person" => [
+      { slot: "characters", title: "演じたキャラクター", list: artist.voiced_character_relations, other: :to_artist, other_types: %w[character] },
+      { slot: "units", title: "所属ユニット", list: artist.unit_relations, other: :to_artist, other_types: %w[unit] }
+    ],
+    "character" => [
+      { slot: "voice_actors", title: "声優", list: artist.voice_actor_relations, other: :from_artist, other_types: %w[person] },
+      { slot: "units", title: "所属ユニット", list: artist.unit_relations, other: :to_artist, other_types: %w[unit] }
+    ],
+    "unit" => [
+      { slot: "members", title: "メンバー", list: artist.unit_member_relations, other: :from_artist, other_types: %w[person character] }
+    ]
+  }.fetch(artist.artist_type, [])
+%>
+<% if sections.any? %>
+  <div class="card bg-base-100 shadow-sm mt-4">
+    <div class="card-body gap-4">
+      <h2 class="card-title text-lg">関係</h2>
+
+      <% sections.each do |section| %>
+        <div class="flex flex-col gap-2">
+          <h3 class="font-semibold text-sm"><%= section[:title] %></h3>
+
+          <% if section[:list].any? %>
+            <ul class="text-sm flex flex-col gap-1">
+              <% section[:list].each do |relation| %>
+                <% other = relation.public_send(section[:other]) %>
+                <li class="flex items-center gap-2">
+                  <%= link_to other.name, edit_admin_artist_path(other), class: "link link-hover" %>
+                  <span class="badge badge-ghost badge-xs"><%= artist_type_label(other.artist_type) %></span>
+                  <%= button_to "外す", admin_artist_relation_path(artist, relation), method: :delete,
+                        class: "btn btn-ghost btn-xs", form_class: "ml-auto" %>
+                </li>
+              <% end %>
+            </ul>
+          <% else %>
+            <p class="text-sm text-base-content/50">まだありません</p>
+          <% end %>
+
+          <%= form_with url: admin_artist_relations_path(artist), method: :post, class: "border border-base-300 rounded-lg p-3 flex flex-col gap-2",
+                html: { "x-data": { mode: "existing", artist_id: nil, query: "", name: "", artist_type: section[:other_types].first, anime_id: "", results: [], open: false }.to_json } do |f| %>
+            <%= hidden_field_tag :slot, section[:slot] %>
+            <input type="hidden" name="other_artist_id" :value="mode === 'existing' ? (artist_id || '') : ''">
+            <input type="hidden" name="name" :value="mode === 'new' ? name : ''">
+            <input type="hidden" name="artist_type" :value="mode === 'new' ? artist_type : ''">
+            <input type="hidden" name="anime_id" :value="mode === 'new' && artist_type === 'character' ? (anime_id || '') : ''">
+
+            <div class="flex items-center gap-2">
+              <select class="select select-bordered select-sm" x-model="mode">
+                <option value="existing">既存のアーティスト</option>
+                <option value="new">新しく作る</option>
+              </select>
+              <span class="text-xs text-base-content/50" x-show="mode === 'new' && name">（同じ名前のアーティストがあればそれを使います）</span>
+            </div>
+
+            <div x-show="mode === 'existing'" class="relative"
+              x-data="{
+                debounce: null,
+                search() {
+                  clearTimeout(this.debounce)
+                  if (!query) { results = []; open = false; return }
+                  this.debounce = setTimeout(() => {
+                    fetch(`/api/admin/artists?q=${encodeURIComponent(query)}`, { credentials: 'same-origin' })
+                      .then(r => r.json()).then(data => { results = data; open = true })
+                  }, 300)
+                },
+                select(item) { artist_id = item.id; query = item.label; open = false }
+              }">
+              <input type="text" class="input input-bordered input-sm w-full" placeholder="名前で検索..."
+                x-model="query" @input="artist_id = null; search()" @keydown.escape="open = false" autocomplete="off">
+              <p class="text-xs text-base-content/50 mt-1" x-show="!artist_id">一覧から選んでください</p>
+              <div x-show="open" x-cloak @click.outside="open = false"
+                class="absolute top-full left-0 right-0 z-10 mt-1 bg-base-100 border border-base-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                <template x-for="item in results" :key="item.id">
+                  <div @click="select(item)" class="px-4 py-2 cursor-pointer hover:bg-base-200 text-sm" x-text="item.label"></div>
+                </template>
+              </div>
+            </div>
+
+            <div x-show="mode === 'new'" class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <input type="text" class="input input-bordered input-sm sm:col-span-2" placeholder="名前" x-model="name">
+              <% if section[:other_types].size > 1 %>
+                <select class="select select-bordered select-sm" x-model="artist_type">
+                  <% section[:other_types].each do |t| %>
+                    <option value="<%= t %>"><%= artist_type_label(t) %></option>
+                  <% end %>
+                </select>
+              <% else %>
+                <span class="badge badge-ghost self-center"><%= artist_type_label(section[:other_types].first) %></span>
+              <% end %>
+              <% if section[:other_types].include?("character") %>
+                <select class="select select-bordered select-sm sm:col-span-3" x-show="artist_type === 'character'" x-model="anime_id">
+                  <option value="">所属アニメを選択（キャラクターは必須）</option>
+                  <% animes.each do |anime| %>
+                    <option value="<%= anime.id %>"><%= anime.title %></option>
+                  <% end %>
+                </select>
+              <% end %>
+            </div>
+
+            <div>
+              <%= f.submit "追加", class: "btn btn-outline btn-sm" %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+<% end %>
