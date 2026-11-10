@@ -32,7 +32,7 @@ module Admin
     def update
       @anime = Anime.find(params[:id])
       if @anime.update(anime_params)
-        redirect_to admin_animes_path, notice: "更新しました"
+        redirect_to return_to_list_path(admin_animes_path), notice: "更新しました"
       else
         render :edit, status: :unprocessable_entity
       end
@@ -44,9 +44,9 @@ module Admin
       # URL が無くても n8n がタイトルで Wikipedia を検索するので、URL の有無は問わない
       crawl_request = CrawlRequests::EnqueueService.call(animes: [ anime ]).first
       if crawl_request
-        redirect_to edit_admin_anime_path(anime), notice: "「#{crawl_request.target_label}」をクロールキューへ追加しました"
+        redirect_to edit_admin_anime_path(anime, return_to: params[:return_to].presence), notice: "「#{crawl_request.target_label}」をクロールキューへ追加しました"
       else
-        redirect_to edit_admin_anime_path(anime), alert: "このアニメ（またはシリーズ）はすでにクロール依頼があります"
+        redirect_to edit_admin_anime_path(anime, return_to: params[:return_to].presence), alert: "このアニメ（またはシリーズ）はすでにクロール依頼があります"
       end
     end
 
@@ -62,7 +62,7 @@ module Admin
     private
 
       def anime_params
-        params.expect(anime: [ :title, :title_en, :media_type, :status, :season, :cover_image_url ])
+        params.expect(anime: [ :title, :title_en, :media_type, :status, :season_year, :season_name, :cover_image_url ])
       end
 
       CRAWL_FILTERS = {

@@ -10,8 +10,17 @@
     <%= f.text_field :q, value: params[:q], placeholder: "タイトル・アーティストで検索", class: "grow" %>
   </label>
 
+  <label class="input input-bordered flex items-center gap-2 min-w-40">
+    <%= f.text_field :anime_q, value: params[:anime_q], placeholder: "アニメ名", class: "grow" %>
+  </label>
+
+  <%= f.select :song_type,
+        [ [ "種別: 全て", "" ] ] + AnimeSong.song_types.keys.map { |t| [ song_type_label(t), t ] },
+        { selected: params[:song_type] },
+        class: "select select-bordered" %>
+
   <%= f.select :sort,
-        [ [ "新しい順", "newest" ], [ "古い順", "oldest" ], [ "タイトル順", "title" ] ],
+        [ [ "新しい順", "newest" ], [ "古い順", "oldest" ], [ "タイトル順", "title" ], [ "アニメの人気順", "anime_popularity" ] ],
         { selected: params[:sort] || "newest" },
         class: "select select-bordered" %>
 
@@ -55,6 +64,12 @@
                 <span class="truncate max-w-48"><%= as.anime.title %></span>
               </div>
             <% end %>
+            <% song.series_songs.each do |ss| %>
+              <div class="flex items-center gap-1.5 mb-0.5 whitespace-nowrap">
+                <span class="badge badge-xs <%= song_type_badge_class(ss.song_type) %>"><%= song_type_label(ss.song_type) %></span>
+                <span class="truncate max-w-48"><%= ss.anime_series.name %>（シリーズ）</span>
+              </div>
+            <% end %>
           </td>
           <td class="text-sm whitespace-nowrap">
             <% if spotify_link %>
@@ -67,7 +82,7 @@
           </td>
           <td>
             <div class="flex gap-1 justify-end">
-              <%= link_to "編集", edit_admin_song_path(song), class: "btn btn-ghost btn-xs" %>
+              <%= link_to "編集", edit_admin_song_path(song, return_to: request.fullpath), class: "btn btn-ghost btn-xs" %>
             </div>
           </td>
         </tr>

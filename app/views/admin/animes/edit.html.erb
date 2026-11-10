@@ -1,8 +1,8 @@
 <% content_for :title, "#{@anime.title} 編集 | 管理画面" %>
 
 <div class="mb-4 flex items-center justify-between">
-  <%= link_to "← 一覧に戻る", admin_animes_path, class: "btn btn-ghost btn-sm" %>
-  <%= button_to enqueue_crawl_request_admin_anime_path(@anime),
+  <%= link_to "← 一覧に戻る", return_to_list_path(admin_animes_path), class: "btn btn-ghost btn-sm" %>
+  <%= button_to enqueue_crawl_request_admin_anime_path(@anime, return_to: params[:return_to].presence),
         method: :post,
         class: "btn btn-outline btn-sm" do %>
     📥 クロールキューへ追加
@@ -35,8 +35,14 @@
       </div>
 
       <div class="form-control">
-        <%= f.label :season, "シーズン", class: "label" %>
-        <%= f.text_field :season, placeholder: "例: 2024-spring", class: "input input-bordered" %>
+        <%= f.label :season_year, "シーズン", class: "label" %>
+        <% current_year = Date.current.year %>
+        <% years = (1960..(current_year + 1)).to_a.reverse %>
+        <% years << @anime.season_year.to_i if @anime.season_year.present? && !years.include?(@anime.season_year.to_i) %>
+        <div class="flex gap-2">
+          <%= f.select :season_year, years.map { |y| [ "#{y}年", y ] }, { include_blank: "未設定" }, class: "select select-bordered flex-1" %>
+          <%= f.select :season_name, [ [ "季節: 未設定", "" ] ] + Anime::SEASON_NAMES_IN_ORDER.map { |n| [ Anime::SEASON_NAME_LABELS.fetch(n), n ] }, {}, class: "select select-bordered flex-1" %>
+        </div>
       </div>
 
       <div class="form-control">
@@ -54,8 +60,10 @@
         <% end %>
       </div>
 
+      <%= hidden_field_tag :return_to, params[:return_to] if params[:return_to].present? %>
+
       <div class="card-actions justify-end mt-2">
-        <%= link_to "キャンセル", admin_animes_path, class: "btn btn-ghost" %>
+        <%= link_to "キャンセル", return_to_list_path(admin_animes_path), class: "btn btn-ghost" %>
         <%= f.submit "保存", class: "btn btn-primary" %>
       </div>
     <% end %>

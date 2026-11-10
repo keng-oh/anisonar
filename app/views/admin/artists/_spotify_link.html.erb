@@ -87,6 +87,7 @@
     <%= form_with url: spotify_link_admin_artist_path(artist), method: :post, html: { id: "spotify-link-form-#{artist.id}", class: "hidden" } do %>
       <%= hidden_field_tag :spotify_artist_id %>
       <%= hidden_field_tag :image_url %>
+      <%= hidden_field_tag :return_to, params[:return_to] if params[:return_to].present? %>
     <% end %>
   </div>
 </div>
