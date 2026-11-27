@@ -11,7 +11,7 @@ gem "cssbundling-rails"
 # Background jobs
 gem "sidekiq", "~> 8.1"
 gem "sidekiq-cron"
-gem "redis", "~> 6.0"
+gem "redis", "~> 6.1"
 
 # Cache / Cable (DB-backed)
 gem "solid_cache"
